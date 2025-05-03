@@ -1,0 +1,290 @@
+/**
+ * Styles des widgets pour le dashboard MAXLINK
+ */
+
+/* Styles pour les séparateurs verticaux */
+.columns-with-separators {
+    position: relative;
+}
+
+.separator {
+    width: 1px;
+    align-self: stretch;
+    background: linear-gradient(to bottom, 
+        transparent, 
+        var(--accent-primary), 
+        transparent);
+    margin: 0 var(--widget-gap);
+    flex: 0 0 1px;
+}
+
+/* Titres des colonnes */
+.column-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent-primary);
+    margin-bottom: 12px;
+    text-align: left;
+}
+/* Base des widgets */
+.widget-container {
+    padding: var(--widget-padding);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Logo */
+.logo {
+    height: 48px;
+}
+
+.logo-text {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-left: 16px;
+    margin-right: auto;
+}
+
+#logo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Styles de titres pour les widgets */
+.widget-title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent-primary);
+}
+
+.widget-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+}
+
+/* Colonnes dans le widget Serveur Monitoring */
+.columns {
+    display: flex;
+    gap: var(--widget-gap);
+    margin-top: 8px;
+}
+
+.column {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Barres de progression */
+.progress-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.progress-label, .progress-label-wide, .progress-label-short {
+    width: 80px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.progress-label-wide {
+    width: 100px;
+}
+
+.progress-label-short {
+    width: 60px;
+}
+
+.progress-container {
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+    margin-right: 16px;
+    max-width: 200px;
+    background-color: var(--bg-primary);
+    overflow: hidden;
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-color),
+        inset -2px -2px 4px var(--highlight-color);
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s ease-in-out;
+    background: linear-gradient(to right, var(--accent-secondary), var(--accent-primary));
+}
+
+.progress-value {
+    width: 70px;
+    text-align: right;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+	white-space: nowrap;
+}
+
+/* Network et MQTT Status */
+.network-status, .mqtt-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: calc(var(--border-radius) - 4px);
+    background-color: var(--bg-primary);
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-color),
+        inset -2px -2px 4px var(--highlight-color);
+}
+
+.network-info-container, .mqtt-info-container {
+    flex: 1;
+}
+
+.network-info {
+    display: flex;
+    margin-bottom: 6px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.network-value {
+    margin-left: 16px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Clients WiFi et Topics MQTT */
+.client, .mqtt-topic {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: calc(var(--border-radius) - 4px);
+    background-color: var(--bg-tertiary);
+    font-size: 14px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.client:hover, .mqtt-topic:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        4px 4px 8px var(--shadow-color),
+        -4px -4px 8px var(--highlight-color);
+}
+
+.client > div:first-child, .mqtt-topic {
+    font-weight: 500;
+    color: var(--accent-primary);
+    margin-bottom: 4px;
+}
+
+.client > div:last-child {
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.mqtt-topics {
+    overflow-y: auto;
+    flex: 1;
+    padding-right: 4px;
+}
+
+/* Widget Logs */
+.logs-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    border-radius: calc(var(--border-radius) - 4px);
+    background-color: var(--bg-primary);
+    font-size: 13px;
+    margin-top: 8px;
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-color),
+        inset -2px -2px 4px var(--highlight-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.log-line {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background-color: var(--bg-secondary);
+    transition: transform 0.2s ease;
+}
+
+.log-line:hover {
+    transform: translateX(4px);
+}
+
+.log-date, .log-time, .log-device {
+    margin-right: 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+}
+
+.log-date {
+    width: 70px;
+}
+
+.log-time {
+    width: 50px;
+}
+
+.log-device {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.log-id {
+    flex: 1;
+    font-family: 'Inter', monospace;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-right: 8px;
+}
+
+.log-error {
+    background-color: rgba(191, 97, 106, 0.15);
+}
+
+.log-error .log-id {
+    color: var(--accent-danger);
+}
+
+/* Indicateurs de statut */
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-ok {
+    background-color: var(--accent-success);
+    box-shadow: 0 0 8px var(--accent-success);
+}
+
+.status-error {
+    background-color: var(--accent-danger);
+    box-shadow: 0 0 8px var(--accent-danger);
+}

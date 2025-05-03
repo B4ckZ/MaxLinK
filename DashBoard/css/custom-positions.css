@@ -1,0 +1,78 @@
+/* 
+ * Styles pour le positionnement personnalisé des widgets
+ * Approche avec le centre (0,0) comme origine et nomenclature H, B, G, D
+ */
+
+.dashboard {
+    position: relative !important;
+    width: 100% !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background-color: var(--bg-primary) !important;
+}
+
+/* Réinitialiser tous les styles des widgets pour éviter les conflits */
+.dashboard > * {
+    position: absolute !important;
+    margin: 0 !important;
+    padding: var(--widget-padding) !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    /* Transformation qui permet de positionner les éléments depuis le centre */
+    transform: translate(-50%, -50%) !important;
+}
+
+/* Variables pour représenter le centre de l'écran */
+:root {
+    --centre-h: 50vh; /* H = hauteur (verticale) */
+    --centre-d: 50vw; /* D = droite (horizontale) */
+}
+
+/* Styles spécifiques pour chaque widget par ID */
+#logo {
+    top: calc(var(--centre-h) - 350px) !important;    /* H-350 = 350px vers le haut */
+    left: calc(var(--centre-d) - 600px) !important;   /* G-400 = 400px vers la gauche */
+    width: 500px !important;
+    height: 200px !important;
+    z-index: 0 !important;
+}
+
+#server-monitoring {
+    top: calc(var(--centre-h) - 105px) !important;     /* H-50 = 50px vers le haut */
+    left: calc(var(--centre-d) - 290px) !important;                 /* Centre horizontal */
+    width: 1130px !important;
+    height: 215px !important;
+    z-index: 0 !important;
+}
+
+#mqtt-logs {
+    top: calc(var(--centre-h) + 10px) !important;
+    left: calc(var(--centre-d) + 580px) !important;
+    width: 550px !important;
+    height: 850px !important;
+    z-index: 0 !important;
+}
+
+#wifi-stats {
+    top: calc(var(--centre-h) + 235px) !important;    /* B+200 = 200px vers le bas */
+    left: calc(var(--centre-d) - 580px) !important;   /* G-400 = 400px vers la gauche */
+    width: 550px !important;
+    height: 400px !important;
+    z-index: 0 !important;
+}
+
+#mqtt-server {
+    top: calc(var(--centre-h) + 235px) !important;    /* B+200 = 200px vers le bas */
+    left: calc(var(--centre-d) + 0px) !important;   /* D+400 = 400px vers la droite */
+    width: 550px !important;
+    height: 400px !important;
+    z-index: 0 !important;
+}
+
+/* Correction pour l'alignement des contenus à l'intérieur des widgets */
+.dashboard > * {
+    display: flex !important;
+    flex-direction: column !important;
+}

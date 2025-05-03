@@ -1,0 +1,10 @@
+├── index.html                     # Fichier HTML principal
+├── css/
+│   ├── base.css                   # Styles de base et variables
+│   ├── widgets.css                # Styles des widgets
+│   ├── custom-positions.css       # Positionnement des widgets
+├── js/
+│   ├── theme-switcher.js          # Gestion du thème
+│   ├── dashboard.js               # Script principal simplifié
+├── themes/
+    ├── nord-theme.css             # Palette de couleurs
