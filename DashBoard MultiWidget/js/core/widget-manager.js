@@ -28,11 +28,7 @@ const WidgetManager = (function() {
         widgetsConfiguration = config;
         
         // Définir les variables CSS pour le centrage
-        document.documentElement.style.setProperty('--centre-h', '50vh');
-        document.documentElement.style.setProperty('--centre-d', '50vw');
-        
-        // Ajouter la classe de positionnement absolu au dashboard
-        dashboardElement.classList.add('absolute-positioning');
+        updateCenterVariables();
         
         // Charger chaque widget dans la configuration
         config.forEach(widgetConfig => {
@@ -43,7 +39,28 @@ const WidgetManager = (function() {
         setTimeout(() => {
             const event = new CustomEvent('widgets-loaded');
             document.dispatchEvent(event);
-        }, 1000); // Délai pour s'assurer que tous les widgets sont chargés
+        }, 1000);
+        
+        // Ajouter un écouteur pour les redimensionnements de fenêtre
+        window.addEventListener('resize', Utils.debounce(() => {
+            updateCenterVariables();
+            // Informer tous les widgets du redimensionnement
+            Object.values(loadedWidgets).forEach(widget => {
+                if (typeof widget.onResize === 'function') {
+                    widget.onResize();
+                }
+            });
+        }, 250));
+    }
+    
+    /**
+     * Met à jour les variables CSS du centre de l'écran
+     */
+    function updateCenterVariables() {
+        const height = window.innerHeight;
+        const width = window.innerWidth;
+        document.documentElement.style.setProperty('--centre-h', `${height / 2}px`);
+        document.documentElement.style.setProperty('--centre-d', `${width / 2}px`);
     }
     
     /**
@@ -51,7 +68,7 @@ const WidgetManager = (function() {
      * @param {Object} config - Configuration du widget
      */
     function loadWidget(config) {
-        const { id, position, size, zIndex } = config;
+        const { id } = config;
         const widgetPath = `widgets/${id}`;
         
         console.log(`Chargement du widget: ${id}`);
@@ -70,18 +87,14 @@ const WidgetManager = (function() {
             .then(html => {
                 // Injecter le HTML dans le dashboard
                 const widgetElement = document.createElement('div');
-                widgetElement.className = 'widget-container neumorphic';
+                widgetElement.className = 'widget-container';
                 widgetElement.id = id;
                 widgetElement.innerHTML = html;
                 dashboardElement.appendChild(widgetElement);
                 
-                // Appliquer le positionnement et les dimensions
-                applyPositioning(widgetElement, position, size, zIndex);
-                
                 // Charger et initialiser le JavaScript du widget
                 loadJS(`${widgetPath}/${id}.js`, () => {
                     // Après le chargement du script, initialiser le widget
-                    // Variable globale conventionnelle pour le widget
                     const widgetVarName = `${id}Widget`;
                     
                     // Vérifier si le widget est disponible
@@ -98,41 +111,6 @@ const WidgetManager = (function() {
             .catch(error => {
                 console.error(`Erreur lors du chargement du widget ${id}:`, error);
             });
-    }
-    
-    /**
-     * Applique le positionnement et les dimensions à un élément de widget
-     * @param {HTMLElement} element - L'élément widget
-     * @param {Object} position - Position du widget
-     * @param {Object} size - Dimensions du widget
-     * @param {number} zIndex - Ordre d'empilement
-     */
-    function applyPositioning(element, position, size, zIndex) {
-        // Position absolue
-        element.style.position = 'absolute';
-        
-        // Transformation pour centrer par rapport au point de référence
-        element.style.transform = 'translate(-50%, -50%)';
-        
-        // Appliquer la position
-        if (position) {
-            if (position.top) element.style.top = position.top;
-            if (position.left) element.style.left = position.left;
-        }
-        
-        // Appliquer les dimensions
-        if (size) {
-            if (size.width) element.style.width = size.width;
-            if (size.height) element.style.height = size.height;
-        }
-        
-        // Appliquer le z-index
-        if (zIndex !== undefined) {
-            element.style.zIndex = zIndex;
-        }
-        
-        // Ajouter la classe pour le positionnement absolu
-        element.classList.add('absolute-positioned');
     }
     
     /**
@@ -221,6 +199,7 @@ const WidgetManager = (function() {
         init,
         getWidget,
         getWidgets,
-        reloadWidget
+        reloadWidget,
+        updateCenterVariables
     };
 })();
