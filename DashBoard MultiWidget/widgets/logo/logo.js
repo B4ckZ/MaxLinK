@@ -1,12 +1,11 @@
 /**
  * Widget Logo pour MAXLINK Dashboard
- * Affiche le logo et le switch de thème
+ * Affiche le logo
  */
 
 const logoWidget = (function() {
     // Variables privées du widget
     let widgetElement;
-    let themeToggle;
     
     /**
      * Initialise le widget
@@ -14,21 +13,7 @@ const logoWidget = (function() {
      */
     function init(element) {
         widgetElement = element;
-        
-        // Initialiser les composants du widget
-        setupEventListeners();
-        
         console.log('Widget Logo initialisé');
-    }
-    
-    /**
-     * Configure les écouteurs d'événements spécifiques au widget
-     */
-    function setupEventListeners() {
-        // Récupérer le toggle de thème
-        themeToggle = widgetElement.querySelector('#theme-toggle');
-        
-        // Si le thème est déjà initialisé (via ThemeSwitcher), pas besoin de réattacher les événements
     }
     
     /**

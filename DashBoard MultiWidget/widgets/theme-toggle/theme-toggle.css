@@ -1,0 +1,76 @@
+/**
+ * Styles pour le widget theme-toggle avec centrage parfait
+ */
+
+/* Widget container */
+#theme-toggle-widget {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    background-color: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    box-shadow: 
+        5px 5px 10px var(--shadow-color),
+        -5px -5px 10px var(--highlight-color);
+    padding: 0;
+}
+
+/* Le bouton qui contient les icônes */
+.theme-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 45px;
+    height: 45px;
+    aspect-ratio: 1 / 1;
+    border-radius: 25%;
+    background-color: var(--bg-primary);
+    border: none;
+    outline: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 
+        inset 2px 2px 3px var(--shadow-color),
+        inset -2px -2px 3px var(--highlight-color);
+    padding: 0;
+    margin: 0;
+}
+
+/* Effet au clic */
+.theme-btn:active {
+    transform: translate(-50%, -50%) scale(0.92);
+}
+
+/* Style commun des icônes */
+.icon {
+    position: absolute;
+    top: 51%;
+    left: 51%;
+    transform: translate(-50%, -50%);
+    width: 25px;
+    height: 25px;
+    color: var(--text-primary);
+    transition: opacity 0.3s ease;
+}
+
+/* État par défaut - Mode sombre */
+#sun-icon {
+    opacity: 0;
+}
+
+#moon-icon {
+    opacity: 1;
+}
+
+/* Mode clair - Inverse la visibilité */
+body[data-theme="light"] #sun-icon {
+    opacity: 1;
+}
+
+body[data-theme="light"] #moon-icon {
+    opacity: 0;
+}

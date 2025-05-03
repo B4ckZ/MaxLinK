@@ -47,6 +47,14 @@
     left: calc(var(--centre-d) - 550px) !important;   /* Position depuis la gauche */
     width: 300px !important;
     height: 100px !important;
+    z-index: 0 !important;
+}
+
+#theme-toggle {
+    bottom: calc(var(--centre-h) + 250px) !important; /* Position depuis le bas */
+    left: calc(var(--centre-d) - 0px) !important;   /* Position depuis la gauche */
+    width: 65px !important;
+    height: 65px !important;
     z-index: 10 !important;
 }
 
@@ -55,7 +63,7 @@
     left: calc(var(--centre-d) - 740px) !important;
     width: 1020px !important;
     height: 210px !important;
-    z-index: 5 !important;
+    z-index: 0 !important;
 }
 
 #wifi-stats {
@@ -63,7 +71,7 @@
     left: calc(var(--centre-d) - 740px) !important;
     width: 500px !important;
     height: 410px !important;
-    z-index: 10 !important;
+    z-index: 0 !important;
 }
 
 #mqtt-server {
@@ -71,7 +79,7 @@
     left: calc(var(--centre-d) - 220px) !important;
     width: 500px !important;
     height: 410px !important;
-    z-index: 10 !important;
+    z-index: 0 !important;
 }
 
 #mqtt-logs {
@@ -79,5 +87,5 @@
     left: calc(var(--centre-d) + 300px) !important;
     width: 500px !important;
     height: 850px !important;
-    z-index: 10 !important;
+    z-index: 0 !important;
 }
