@@ -35,65 +35,65 @@
     flex-direction: column !important;
 }
 
-/* Variables pour représenter le centre de l'écran */
+/* Variables pour représenter le point bas-gauche de l'écran */
 :root {
-    --centre-h: 50vh; /* H = hauteur (verticale) */
-    --centre-d: 50vw; /* D = droite (horizontale) */
+    --base-h: 0px; /* H = hauteur (verticale) depuis le bas */
+    --base-d: 0px; /* D = droite (horizontale) depuis la gauche */
 }
 
 /* Configuration des widgets par ID avec ancrage bas-gauche */
 #logo {
-    bottom: calc(var(--centre-h) + 300px) !important; /* Position depuis le bas */
-    left: calc(var(--centre-d) - 740px) !important;   /* Position depuis la gauche */
-    width: 500px !important;
+    bottom: calc(var(--base-h) + 690px) !important; /* Position depuis le bas */
+    left: calc(var(--base-d) + 40px) !important;   /* Position depuis la gauche */
+    width: 450px !important;
     height: 135px !important;
-    z-index: 10 !important;
+    z-index: 0 !important;
 }
 
 #theme-toggle {
-    bottom: calc(var(--centre-h) + 225px) !important; /* Position depuis le bas */
-    left: calc(var(--centre-d) - 740px) !important;   /* Position depuis la gauche */
+    bottom: calc(var(--base-h) + 845px) !important; /* Position depuis le bas */
+    left: calc(var(--base-d) + 40px) !important;   /* Position depuis la gauche */
     width: 65px !important;
     height: 65px !important;
-    z-index: 10 !important;
+    z-index: 0 !important;
 }
 
 #server-monitoring {
-    bottom: calc(var(--centre-h) + 00px) !important;
-    left: calc(var(--centre-d) - 740px) !important;
-    width: 1020px !important;
+    bottom: calc(var(--base-h) + 460px) !important;
+    left: calc(var(--base-d) + 40px) !important;
+    width: 1390px !important;
     height: 210px !important;
     z-index: 0 !important;
 }
 
 #wifi-stats {
-    bottom: calc(var(--centre-h) - 435px) !important;
-    left: calc(var(--centre-d) - 740px) !important;
-    width: 500px !important;
-    height: 410px !important;
+    bottom: calc(var(--base-h) + 40px) !important;
+    left: calc(var(--base-d) + 40px) !important;
+    width: 450px !important;
+    height: 400px !important;
     z-index: 0 !important;
 }
 
 #mqtt-server {
-    bottom: calc(var(--centre-h) - 435px) !important;
-    left: calc(var(--centre-d) - 220px) !important;
-    width: 500px !important;
-    height: 410px !important;
+    bottom: calc(var(--base-h) + 40px) !important;
+    left: calc(var(--base-d) + 510px) !important;
+    width: 450px !important;
+    height: 400px !important;
     z-index: 0 !important;
 }
 
 #mqtt-logs-509-511 {
-    bottom: calc(var(--centre-h) - 165px) !important;
-    left: calc(var(--centre-d) + 300px) !important;
-    width: 500px !important;
-    height: 600px !important;
+    bottom: calc(var(--base-h) + 40px) !important;
+    left: calc(var(--base-d) + 1450px) !important;
+    width: 450px !important;
+    height: 850px !important;
     z-index: 0 !important;
 }
 
 #mqtt-logs-999 {
-    bottom: calc(var(--centre-h) - 435px) !important;
-    left: calc(var(--centre-d) + 300px) !important;
-    width: 500px !important;
-    height: 250px !important;
-    z-index: 10 !important;
+    bottom: calc(var(--base-h) + 40px) !important;
+    left: calc(var(--base-d) + 980px) !important;
+    width: 450px !important;
+    height: 400px !important;
+    z-index: 0 !important;
 }
