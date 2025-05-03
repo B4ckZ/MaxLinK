@@ -82,23 +82,44 @@ body {
         inset -4px -4px 8px var(--highlight-color);
 }
 
-/* Scrollbar Styling */
+/* Scrollbar Styling Minimaliste - Thème Neumorphique */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--bg-primary);
-    border-radius: 4px;
+    background: transparent;
+    margin: 4px 0;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--bg-tertiary);
-    border-radius: 4px;
-    transition: background 0.3s ease;
+    background-color: var(--bg-tertiary);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 
+        inset 1px 1px 2px var(--shadow-color),
+        inset -1px -1px 2px var(--highlight-color);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-primary);
+    background-color: var(--accent-primary);
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Pour Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--bg-tertiary) transparent;
+}
+
+/* Pour s'assurer que tous les conteneurs avec défilement utilisent ce style */
+.scrollable-content,
+[class*="container"],
+[class*="content"] {
+    scrollbar-width: thin;
+    scrollbar-color: var(--bg-tertiary) transparent;
 }

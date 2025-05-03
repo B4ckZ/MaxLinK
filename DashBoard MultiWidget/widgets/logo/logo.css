@@ -1,22 +1,35 @@
 /**
- * Styles pour le widget logo
+ * Styles pour le widget logo avec image
  */
 
-/* Logo */
-.logo {
-    height: 48px;
+/* Conteneur principal */
+#logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
+/* Conteneur pour le logo et le texte */
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+/* Image du logo */
+.logo-image {
+    height: 40px; /* Ajustez la taille selon vos besoins */
+    width: auto; /* Maintient le ratio d'aspect */
+    margin-right: 16px;
+    object-fit: contain; /* Empêche la déformation de l'image */
+}
+
+/* Texte du logo */
 .logo-text {
     font-size: 24px;
     font-weight: 700;
     letter-spacing: 1px;
-    margin-left: 16px;
+    color: var(--text-primary);
     margin-right: auto;
-}
-
-#logo {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
 }
