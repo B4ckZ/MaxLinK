@@ -19,7 +19,7 @@
 
 /* Image du logo */
 .logo-image {
-    height: 40px; /* Ajustez la taille selon vos besoins */
+    height: 120px; /* Ajustez la taille selon vos besoins */
     width: auto; /* Maintient le ratio d'aspect */
     margin-right: 16px;
     object-fit: contain; /* Empêche la déformation de l'image */

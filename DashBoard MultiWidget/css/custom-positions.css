@@ -44,14 +44,14 @@
 /* Configuration des widgets par ID avec ancrage bas-gauche */
 #logo {
     bottom: calc(var(--centre-h) + 300px) !important; /* Position depuis le bas */
-    left: calc(var(--centre-d) - 550px) !important;   /* Position depuis la gauche */
-    width: 300px !important;
-    height: 100px !important;
-    z-index: 0 !important;
+    left: calc(var(--centre-d) - 740px) !important;   /* Position depuis la gauche */
+    width: 500px !important;
+    height: 135px !important;
+    z-index: 10 !important;
 }
 
 #theme-toggle {
-    bottom: calc(var(--centre-h) + 230px) !important; /* Position depuis le bas */
+    bottom: calc(var(--centre-h) + 225px) !important; /* Position depuis le bas */
     left: calc(var(--centre-d) - 740px) !important;   /* Position depuis la gauche */
     width: 65px !important;
     height: 65px !important;
