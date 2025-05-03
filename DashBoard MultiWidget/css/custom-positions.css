@@ -45,7 +45,7 @@
 #logo {
     bottom: calc(var(--base-h) + 690px) !important; /* Position depuis le bas */
     left: calc(var(--base-d) + 40px) !important;   /* Position depuis la gauche */
-    width: 450px !important;
+    width: 445px !important;
     height: 135px !important;
     z-index: 0 !important;
 }
@@ -61,7 +61,7 @@
 #server-monitoring {
     bottom: calc(var(--base-h) + 460px) !important;
     left: calc(var(--base-d) + 40px) !important;
-    width: 1390px !important;
+    width: 1375px !important;
     height: 210px !important;
     z-index: 0 !important;
 }
@@ -69,31 +69,31 @@
 #wifi-stats {
     bottom: calc(var(--base-h) + 40px) !important;
     left: calc(var(--base-d) + 40px) !important;
-    width: 450px !important;
+    width: 445px !important;
     height: 400px !important;
     z-index: 0 !important;
 }
 
 #mqtt-server {
     bottom: calc(var(--base-h) + 40px) !important;
-    left: calc(var(--base-d) + 510px) !important;
-    width: 450px !important;
+    left: calc(var(--base-d) + 505px) !important;
+    width: 445px !important;
     height: 400px !important;
     z-index: 0 !important;
 }
 
 #mqtt-logs-509-511 {
     bottom: calc(var(--base-h) + 40px) !important;
-    left: calc(var(--base-d) + 1450px) !important;
-    width: 450px !important;
+    left: calc(var(--base-d) + 1435px) !important;
+    width: 445px !important;
     height: 850px !important;
     z-index: 0 !important;
 }
 
 #mqtt-logs-999 {
     bottom: calc(var(--base-h) + 40px) !important;
-    left: calc(var(--base-d) + 980px) !important;
-    width: 450px !important;
+    left: calc(var(--base-d) + 970px) !important;
+    width: 445px !important;
     height: 400px !important;
     z-index: 0 !important;
 }

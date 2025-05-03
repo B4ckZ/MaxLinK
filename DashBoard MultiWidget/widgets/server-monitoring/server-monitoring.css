@@ -78,7 +78,7 @@
         var(--accent-primary), 
         transparent);
     margin: 0 var(--widget-gap);
-    flex: 0 0 1px;
+    flex: 0 0 2px;
 }
 
 /* Titres des colonnes */
