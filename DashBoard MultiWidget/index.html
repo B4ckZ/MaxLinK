@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAXLINK Dashboard</title>
+    <!-- Polices -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS de base -->
+    <link rel="stylesheet" href="css/nord-theme.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    
+    <!-- Le gestionnaire de widgets chargera dynamiquement les CSS des widgets -->
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Les widgets seront injectés ici via JavaScript -->
+    </div>
+
+    <!-- Scripts core -->
+    <script src="js/core/theme-switcher.js"></script>
+    <script src="js/utils/utils.js"></script>
+    <script src="js/core/widget-manager.js"></script>
+    <script src="js/core/dashboard.js"></script>
+    
+    <!-- Configuration des widgets (ordre, position, etc.) -->
+    <script>
+        // Configuration des widgets à charger
+        const widgetsConfig = [
+            {
+                id: 'logo',
+                position: {
+                    top: 'calc(var(--centre-h) - 350px)',
+                    left: 'calc(var(--centre-d) - 400px)'
+                },
+                size: {
+                    width: '300px',
+                    height: '120px'
+                },
+                zIndex: 10
+            },
+            {
+                id: 'mqtt-logs',
+                position: {
+                    top: 'calc(var(--centre-h) - 350px)',
+                    left: 'calc(var(--centre-d) + 400px)'
+                },
+                size: {
+                    width: '500px',
+                    height: '120px'
+                },
+                zIndex: 10
+            },
+            {
+                id: 'server-monitoring',
+                position: {
+                    top: 'calc(var(--centre-h) - 50px)',
+                    left: 'var(--centre-d)'
+                },
+                size: {
+                    width: '800px',
+                    height: 'auto'
+                },
+                zIndex: 5
+            },
+            {
+                id: 'wifi-stats',
+                position: {
+                    top: 'calc(var(--centre-h) + 200px)',
+                    left: 'calc(var(--centre-d) - 400px)'
+                },
+                size: {
+                    width: '400px',
+                    height: '300px'
+                },
+                zIndex: 10
+            },
+            {
+                id: 'mqtt-server',
+                position: {
+                    top: 'calc(var(--centre-h) + 200px)',
+                    left: 'calc(var(--centre-d) + 400px)'
+                },
+                size: {
+                    width: '400px',
+                    height: '300px'
+                },
+                zIndex: 10
+            }
+        ];
+
+        // Initialisation du dashboard avec la configuration
+        document.addEventListener('DOMContentLoaded', function() {
+            WidgetManager.init(widgetsConfig);
+        });
+    </script>
+</body>
+</html>

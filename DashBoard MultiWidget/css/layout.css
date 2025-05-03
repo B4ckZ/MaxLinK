@@ -1,0 +1,97 @@
+/**
+ * Styles de mise en page pour le dashboard MAXLINK
+ */
+
+/* Dashboard principal */
+.dashboard {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+    background-color: var(--bg-primary);
+}
+
+/* Dashboard avec positionnement absolu */
+.dashboard.absolute-positioning {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Widget avec positionnement absolu */
+.widget-container.absolute-positioned {
+    position: absolute !important;
+    margin: 0 !important;
+    padding: var(--widget-padding) !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    /* Transformation qui permet de positionner les éléments depuis le centre */
+    transform: translate(-50%, -50%) !important;
+    /* Autres styles pour éviter les conflits */
+    max-width: none !important;
+    min-width: 0 !important;
+    flex: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Conteneur de widget de base */
+.widget-container {
+    padding: var(--widget-padding);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Styles de base pour les titres de widgets */
+.widget-title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent-primary);
+}
+
+.widget-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+}
+
+/* Styles pour les colonnes avec séparateurs */
+.columns-with-separators {
+    position: relative;
+}
+
+.separator {
+    width: 1px;
+    align-self: stretch;
+    background: linear-gradient(to bottom, 
+        transparent, 
+        var(--accent-primary), 
+        transparent);
+    margin: 0 var(--widget-gap);
+    flex: 0 0 1px;
+}
+
+/* Titres des colonnes */
+.column-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent-primary);
+    margin-bottom: 12px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.column-icon {
+    color: var(--accent-primary);
+}

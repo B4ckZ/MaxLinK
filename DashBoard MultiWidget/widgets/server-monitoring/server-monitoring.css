@@ -1,0 +1,73 @@
+/**
+ * Styles pour le widget server-monitoring
+ */
+
+/* Barres de progression */
+.progress-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.progress-label, .progress-label-wide, .progress-label-short {
+    width: 80px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.progress-label-wide {
+    width: 100px;
+}
+
+.progress-label-short {
+    width: 60px;
+}
+
+.progress-container {
+    flex: 1;
+    height: 12px; /* Hauteur légèrement augmentée */
+    border-radius: 6px;
+    margin-right: 16px;
+    max-width: 180px;
+    background-color: var(--bg-primary);
+    overflow: hidden;
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-color),
+        inset -2px -2px 4px var(--highlight-color);
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.8s ease-in-out;
+    background: linear-gradient(to right, var(--accent-secondary), var(--accent-primary));
+}
+
+.progress-value {
+    width: 70px; /* Augmenté pour éviter les problèmes avec "GHz" */
+    text-align: right;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap; /* Empêche le retour à la ligne */
+}
+
+/* Colonnes */
+.columns {
+    display: flex;
+    gap: var(--widget-gap);
+    margin-top: 8px;
+}
+
+.column {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Icônes de colonnes */
+.column-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--accent-primary);
+}
