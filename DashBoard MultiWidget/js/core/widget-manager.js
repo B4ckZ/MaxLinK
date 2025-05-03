@@ -8,6 +8,8 @@ const WidgetManager = (function() {
     const loadedWidgets = {};
     // Référence à l'élément dashboard
     let dashboardElement;
+    // Stockage de la configuration des widgets pour réutilisation
+    let widgetsConfiguration = [];
     
     /**
      * Initialise le gestionnaire de widgets
@@ -22,6 +24,9 @@ const WidgetManager = (function() {
             return;
         }
         
+        // Stocker la configuration pour réutilisation
+        widgetsConfiguration = config;
+        
         // Définir les variables CSS pour le centrage
         document.documentElement.style.setProperty('--centre-h', '50vh');
         document.documentElement.style.setProperty('--centre-d', '50vw');
@@ -33,6 +38,12 @@ const WidgetManager = (function() {
         config.forEach(widgetConfig => {
             loadWidget(widgetConfig);
         });
+        
+        // Déclencher un événement pour indiquer que les widgets sont chargés
+        setTimeout(() => {
+            const event = new CustomEvent('widgets-loaded');
+            document.dispatchEvent(event);
+        }, 1000); // Délai pour s'assurer que tous les widgets sont chargés
     }
     
     /**
@@ -69,13 +80,18 @@ const WidgetManager = (function() {
                 
                 // Charger et initialiser le JavaScript du widget
                 loadJS(`${widgetPath}/${id}.js`, () => {
-                    // Après le chargement du script, le widget doit s'enregistrer lui-même
-                    if (window[`${id}Widget`] && typeof window[`${id}Widget`].init === 'function') {
-                        window[`${id}Widget`].init(widgetElement);
+                    // Après le chargement du script, initialiser le widget
+                    // Variable globale conventionnelle pour le widget
+                    const widgetVarName = `${id}Widget`;
+                    
+                    // Vérifier si le widget est disponible
+                    if (window[widgetVarName] && typeof window[widgetVarName].init === 'function') {
+                        window[widgetVarName].init(widgetElement);
                         // Stocker le widget dans le cache
-                        loadedWidgets[id] = window[`${id}Widget`];
+                        loadedWidgets[id] = window[widgetVarName];
+                        console.log(`Widget ${id} initialisé avec succès`);
                     } else {
-                        console.error(`Widget ${id} n'a pas de méthode d'initialisation`);
+                        console.error(`Widget ${id} n'a pas de méthode d'initialisation ou n'est pas correctement défini`);
                     }
                 });
             })
@@ -124,6 +140,14 @@ const WidgetManager = (function() {
      * @param {string} url - URL du fichier CSS
      */
     function loadCSS(url) {
+        // Vérifier si la feuille de style est déjà chargée
+        const existingLinks = document.querySelectorAll('link[rel="stylesheet"]');
+        for (const link of existingLinks) {
+            if (link.href.endsWith(url)) {
+                return; // La feuille de style est déjà chargée
+            }
+        }
+        
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = url;
@@ -136,6 +160,15 @@ const WidgetManager = (function() {
      * @param {Function} callback - Fonction à exécuter après le chargement
      */
     function loadJS(url, callback) {
+        // Vérifier si le script est déjà chargé
+        const existingScripts = document.querySelectorAll('script');
+        for (const script of existingScripts) {
+            if (script.src.endsWith(url)) {
+                callback(); // Le script est déjà chargé, exécuter le callback
+                return;
+            }
+        }
+        
         const script = document.createElement('script');
         script.src = url;
         script.onload = callback;
@@ -155,11 +188,19 @@ const WidgetManager = (function() {
     }
     
     /**
+     * Obtient tous les widgets chargés
+     * @returns {Object} Objet contenant tous les widgets chargés
+     */
+    function getWidgets() {
+        return loadedWidgets;
+    }
+    
+    /**
      * Recharge un widget
      * @param {string} id - ID du widget à recharger
      */
     function reloadWidget(id) {
-        const widgetConfig = widgetsConfig.find(config => config.id === id);
+        const widgetConfig = widgetsConfiguration.find(config => config.id === id);
         if (widgetConfig) {
             // Supprimer le widget existant
             const element = document.getElementById(id);
@@ -170,6 +211,8 @@ const WidgetManager = (function() {
             delete loadedWidgets[id];
             // Recharger
             loadWidget(widgetConfig);
+        } else {
+            console.error(`Configuration pour le widget ${id} non trouvée`);
         }
     }
     
@@ -177,6 +220,7 @@ const WidgetManager = (function() {
     return {
         init,
         getWidget,
+        getWidgets,
         reloadWidget
     };
 })();

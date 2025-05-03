@@ -22,10 +22,85 @@
     </div>
 
     <!-- Scripts core -->
-    <script src="js/core/theme-switcher.js"></script>
     <script src="js/utils/utils.js"></script>
+    <script src="js/core/theme-switcher.js"></script>
     <script src="js/core/widget-manager.js"></script>
     <script src="js/core/dashboard.js"></script>
+    
+    <!-- Script de vérification de la structure des fichiers -->
+    <script>
+        // Fonction pour vérifier l'existence d'un fichier
+        function checkFileExists(url) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('HEAD', url, true);
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve(true);
+                    } else {
+                        resolve(false);
+                    }
+                };
+                xhr.onerror = function() {
+                    resolve(false);
+                };
+                xhr.send();
+            });
+        }
+
+        // Liste des widgets et leurs fichiers nécessaires
+        const widgetsToCheck = [
+            'logo',
+            'mqtt-logs',
+            'server-monitoring',
+            'wifi-stats',
+            'mqtt-server'
+        ];
+
+        // Fonction principale de vérification
+        async function verifyFiles() {
+            console.log("=== VÉRIFICATION DES FICHIERS ===");
+            
+            // Vérification des fichiers core
+            const coreFiles = [
+                'css/nord-theme.css',
+                'css/base.css',
+                'css/layout.css',
+                'js/core/theme-switcher.js',
+                'js/utils/utils.js',
+                'js/core/widget-manager.js',
+                'js/core/dashboard.js'
+            ];
+            
+            console.log("Vérification des fichiers core:");
+            for (const file of coreFiles) {
+                const exists = await checkFileExists(file);
+                console.log(`- ${file}: ${exists ? '✓' : '✗'}`);
+            }
+            
+            // Vérification des widgets
+            console.log("\nVérification des widgets:");
+            for (const widget of widgetsToCheck) {
+                console.log(`\nWidget: ${widget}`);
+                
+                const widgetFiles = [
+                    `widgets/${widget}/${widget}.html`,
+                    `widgets/${widget}/${widget}.css`,
+                    `widgets/${widget}/${widget}.js`
+                ];
+                
+                for (const file of widgetFiles) {
+                    const exists = await checkFileExists(file);
+                    console.log(`- ${file}: ${exists ? '✓' : '✗'}`);
+                }
+            }
+            
+            console.log("\n=== FIN DE LA VÉRIFICATION ===");
+        }
+
+        // Exécuter la vérification au chargement
+        document.addEventListener('DOMContentLoaded', verifyFiles);
+    </script>
     
     <!-- Configuration des widgets (ordre, position, etc.) -->
     <script>
@@ -39,19 +114,7 @@
                 },
                 size: {
                     width: '300px',
-                    height: '120px'
-                },
-                zIndex: 10
-            },
-            {
-                id: 'mqtt-logs',
-                position: {
-                    top: 'calc(var(--centre-h) - 350px)',
-                    left: 'calc(var(--centre-d) + 400px)'
-                },
-                size: {
-                    width: '500px',
-                    height: '120px'
+                    height: '100px'
                 },
                 zIndex: 10
             },
@@ -66,6 +129,18 @@
                     height: 'auto'
                 },
                 zIndex: 5
+            },
+            {
+                id: 'mqtt-logs',
+                position: {
+                    top: 'calc(var(--centre-h) + 10px)',
+                    left: 'calc(var(--centre-d) + 400px)'
+                },
+                size: {
+                    width: '500px',
+                    height: '600px'
+                },
+                zIndex: 10
             },
             {
                 id: 'wifi-stats',
@@ -95,6 +170,7 @@
 
         // Initialisation du dashboard avec la configuration
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialiser le gestionnaire de widgets
             WidgetManager.init(widgetsConfig);
         });
     </script>

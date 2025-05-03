@@ -3,7 +3,7 @@
  * Affiche les métriques principales du serveur
  */
 
-const ServerMonitoringWidget = (function() {
+const serverMonitoringWidget = (function() {
     // Variables privées du widget
     let widgetElement;
     let config = {
@@ -51,9 +51,29 @@ const ServerMonitoringWidget = (function() {
         
         console.log('Widget Server Monitoring initialisé');
         
+        // Animer les barres de progression initialement
+        animateProgressBars();
+        
         // Premier chargement des données et démarrage de la mise à jour périodique
         loadData();
         startUpdateInterval();
+    }
+    
+    /**
+     * Animation des barres de progression
+     */
+    function animateProgressBars() {
+        const progressBars = widgetElement.querySelectorAll('.progress-bar');
+        
+        progressBars.forEach(bar => {
+            const targetWidth = bar.style.width;
+            bar.style.width = '0';
+            
+            setTimeout(() => {
+                bar.style.transition = 'width 1s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                bar.style.width = targetWidth;
+            }, 300);
+        });
     }
     
     /**

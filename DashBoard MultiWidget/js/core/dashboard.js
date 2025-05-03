@@ -25,7 +25,9 @@ const Dashboard = (function() {
         // Ajustement lors du redimensionnement
         window.addEventListener('resize', Utils.debounce(() => {
             // Informer tous les widgets du redimensionnement
-            Object.keys(WidgetManager.getWidgets()).forEach(widgetId => {
+            // Correction: Utiliser getWidget pour chaque widget connu
+            const widgetIds = ['logo', 'mqtt-logs', 'server-monitoring', 'wifi-stats', 'mqtt-server'];
+            widgetIds.forEach(widgetId => {
                 const widget = WidgetManager.getWidget(widgetId);
                 if (widget && typeof widget.onResize === 'function') {
                     widget.onResize();
