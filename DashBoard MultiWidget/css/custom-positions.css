@@ -50,6 +50,14 @@
     z-index: 0 !important;
 }
 
+#reboot-button {
+    bottom: calc(var(--base-h) + 845px) !important; /* Position depuis le bas */
+    left: calc(var(--base-d) + 125px) !important;   /* Position à côté du theme-toggle */
+    width: 65px !important;
+    height: 65px !important;
+    z-index: 0 !important;
+}
+
 #theme-toggle {
     bottom: calc(var(--base-h) + 845px) !important; /* Position depuis le bas */
     left: calc(var(--base-d) + 40px) !important;   /* Position depuis la gauche */
