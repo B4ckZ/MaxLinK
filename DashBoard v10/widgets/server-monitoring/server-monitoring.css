@@ -52,7 +52,7 @@
     height: 100%;
     border-radius: 4px;
     transition: width 0.8s ease-in-out;
-    background: linear-gradient(to right, var(--nord14), var(--nord12));
+    background: linear-gradient(to right, var(--nord10), var(--nord12));
 }
 
 .progress-value {
