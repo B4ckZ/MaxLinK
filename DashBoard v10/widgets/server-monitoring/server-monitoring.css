@@ -1,0 +1,116 @@
+/**
+ * Styles pour le widget server-monitoring
+ * Utilisation directe des variables Nord
+ */
+
+/* Barres de progression */
+.progress-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.progress-label, .progress-label-wide, .progress-label-short {
+    width: 80px;
+    font-size: 14px;
+    color: var(--nord5);
+    font-weight: 500;
+}
+
+[data-theme="light"] .progress-label,
+[data-theme="light"] .progress-label-wide,
+[data-theme="light"] .progress-label-short {
+    color: var(--nord1);
+}
+
+.progress-label-wide {
+    width: 100px;
+}
+
+.progress-label-short {
+    width: 60px;
+}
+
+.progress-container {
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+    margin-right: 16px;
+    max-width: 200px;
+    background-color: var(--nord0);
+    overflow: hidden;
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-color),
+        inset -2px -2px 4px var(--highlight-color);
+}
+
+[data-theme="light"] .progress-container {
+    background-color: var(--nord6);
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s ease-in-out;
+    background: linear-gradient(to right, var(--nord14), var(--nord12));
+}
+
+.progress-value {
+    width: 100px;
+    text-align: right;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--nord5);
+    white-space: nowrap;
+}
+
+[data-theme="light"] .progress-value {
+    color: var(--nord1);
+}
+
+/* Colonnes */
+.columns {
+    display: flex;
+    gap: var(--widget-gap);
+    margin-top: 8px;
+}
+
+.column {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Styles pour les séparateurs verticaux */
+.columns-with-separators {
+    position: relative;
+}
+
+.separator {
+    width: 1px;
+    align-self: stretch;
+    background: linear-gradient(to bottom, 
+        transparent, 
+        var(--nord9), 
+        transparent);
+    margin: 0 var(--widget-gap);
+    flex: 0 0 2px;
+}
+
+/* Titres des colonnes */
+.column-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--nord9);
+    margin-bottom: 12px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Icônes de colonnes */
+.column-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--nord9);
+}

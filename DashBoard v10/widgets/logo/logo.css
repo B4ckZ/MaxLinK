@@ -1,0 +1,41 @@
+/**
+ * Styles pour le widget logo avec image
+ * Utilisation directe des variables Nord
+ */
+
+/* Conteneur principal */
+#logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Conteneur pour le logo et le texte */
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+/* Image du logo */
+.logo-image {
+    height: 22%; /* Ajustez la taille selon vos besoins */
+    width: auto; /* Maintient le ratio d'aspect */
+    margin-right: 0px;
+    margin-left: -10px;
+    object-fit: contain; /* Empêche la déformation de l'image */
+}
+
+/* Texte du logo */
+.logo-text {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--nord6);
+    margin-right: auto;
+}
+
+[data-theme="light"] .logo-text {
+    color: var(--nord0);
+}
