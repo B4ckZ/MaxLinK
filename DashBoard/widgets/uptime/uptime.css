@@ -1,51 +1,60 @@
 /**
- * Widget Uptime - Style optimisé pour éviter les conflits CSS
+ * Widget Uptime - Version finale avec valeurs en pixels
  */
 
-/* Conteneur principal avec isolation des styles pour éviter les conflits */
-#uptime .uptime-container {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 15px !important;
-    box-sizing: border-box;
-    /* Reset des styles qui pourraient interférer */
-    margin: 0 !important;
+/* Variables globales pour la cohérence */
+:root {
+    --widget-border-radius: 10px; /* Arrondi cohérent pour tout le widget */
 }
 
-/* Cadre intérieur enfoncé */
-#uptime .uptime-inset {
-    width: 100%;
-    height: 45px;
-    border-radius: 16px;
+/* Assure que le widget principal a le même arrondi */
+#uptime {
+    border-radius: var(--widget-border-radius) !important;
+}
+
+/* Cadre enfoncé avec marges personnalisables */
+.uptime-inset {
+    /* Variables pour les marges */
+    --margin-horizontal: 10px; /* Marge gauche et droite */
+    --margin-vertical: 10px;   /* Marge haute et basse */
+    
+    /* Positionnement avec les marges définies */
+    position: absolute;
+    top: var(--margin-vertical);
+    left: var(--margin-horizontal);
+    width: calc(100% - (var(--margin-horizontal) * 2));
+    height: calc(100% - (var(--margin-vertical) * 2));
+    
+    /* Même style d'arrondi que le widget principal */
+    border-radius: var(--widget-border-radius);
+    
+    /* Styles visuels */
     background-color: var(--nord0);
-    border: none;
-    outline: none;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 
         inset 2px 2px 4px rgba(0, 0, 0, 0.3),
         inset -2px -2px 4px rgba(255, 255, 255, 0.05);
-    /* Reset des styles qui pourraient interférer */
-    margin: 0 !important;
 }
 
-/* Style de l'icône */
-#uptime .uptime-icon {
-    width: 22px;
-    height: 22px;
+/* Icône d'horloge */
+.uptime-icon {
+    width: 25px;
+    height: 25px;
     margin-right: 10px;
-    color: var(--nord8); /* Bleu clair */
-    flex-shrink: 0;
+    color: var(--nord8);
+    transition: transform 0.5s ease;
 }
 
-/* Style du texte */
-#uptime .uptime-value {
+/* Animation de l'icône au survol */
+.uptime-inset:hover .uptime-icon {
+    transform: rotate(360deg);
+}
+
+/* Valeur d'uptime */
+.uptime-value {
     font-size: 16px;
-    font-family: monospace;
     font-weight: 500;
     color: var(--nord6);
     white-space: nowrap;
@@ -53,31 +62,22 @@
     text-overflow: ellipsis;
 }
 
-/* Animation pour les mises à jour de valeur */
+/* Animation pour les mises à jour */
 @keyframes pulse {
     0% { opacity: 1; }
     50% { opacity: 0.7; }
     100% { opacity: 1; }
 }
 
-#uptime .value-update {
+.value-update {
     animation: pulse 0.5s ease;
 }
 
-/* Effet au survol */
-#uptime .uptime-inset:hover {
-    box-shadow: 
-        inset 3px 3px 5px rgba(0, 0, 0, 0.4),
-        inset -2px -2px 4px rgba(255, 255, 255, 0.05);
-}
-
-/* Animation de l'icône au survol */
-#uptime .uptime-inset:hover .uptime-icon {
-    transform: rotate(360deg);
-    transition: transform 1s ease;
-}
-
 /* Support du thème clair */
-[data-theme="light"] #uptime .uptime-inset {
+[data-theme="light"] .uptime-inset {
     background-color: var(--nord1);
+}
+
+[data-theme="light"] .uptime-value {
+    color: var(--nord5);
 }

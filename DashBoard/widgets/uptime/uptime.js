@@ -8,7 +8,7 @@ const uptimeWidget = (function() {
     let widgetElement;
     let uptimeElement;
     let config = {
-        refreshInterval: 1000, // Mise à jour toutes les secondes pour un compteur fluide
+        refreshInterval: 1000, // Mise à jour toutes les secondes
         animateChanges: true,
         simulateMode: true // Pour la démo - à désactiver en production
     };
@@ -81,10 +81,10 @@ const uptimeWidget = (function() {
      * @returns {Promise} Promesse contenant les données d'uptime
      */
     function fetchUptimeData() {
-        // Ici, vous implémenteriez l'appel à votre API réelle
+        // Implémentez ici l'appel à votre API réelle
         // Exemple : return fetch('/api/system/uptime').then(res => res.json());
         
-        // Simulons une réponse pour la démonstration
+        // Simulation pour la démonstration
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve({ uptime: '3d 12h 45m 30s' });
@@ -134,15 +134,15 @@ const uptimeWidget = (function() {
      * Configure les écouteurs d'événements
      */
     function setupEventListeners() {
-        // Ajouter un effet de clic sur le bouton (optionnel)
-        const insetButton = widgetElement.querySelector('.button-widget-inset');
+        // Ajouter un effet de clic sur le cadre intérieur (optionnel)
+        const insetElement = widgetElement.querySelector('.uptime-inset');
         
-        if (insetButton) {
-            insetButton.addEventListener('click', () => {
+        if (insetElement) {
+            insetElement.addEventListener('click', () => {
                 // Effet visuel au clic
-                insetButton.style.transform = 'scale(0.98)';
+                insetElement.style.transform = 'scale(0.98)';
                 setTimeout(() => {
-                    insetButton.style.transform = '';
+                    insetElement.style.transform = '';
                 }, 200);
                 
                 // Forcer un rafraîchissement des données
@@ -174,7 +174,7 @@ const uptimeWidget = (function() {
      * Appelé lors du redimensionnement de la fenêtre
      */
     function onResize() {
-        // Le CSS s'occupe de l'adaptation aux différentes tailles
+        // Le CSS gère automatiquement l'adaptation aux différentes tailles
     }
     
     /**
@@ -188,9 +188,9 @@ const uptimeWidget = (function() {
         }
         
         // Retirer les écouteurs d'événements
-        const insetButton = widgetElement.querySelector('.button-widget-inset');
-        if (insetButton) {
-            insetButton.removeEventListener('click', () => {});
+        const insetElement = widgetElement.querySelector('.uptime-inset');
+        if (insetElement) {
+            insetElement.removeEventListener('click', () => {});
         }
     }
     
