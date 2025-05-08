@@ -16,8 +16,7 @@ const serverMonitoringWidget = (function() {
             "freq-gpu": { path: ["frequency", "gpu"], suffix: " MHz", max: 750 },
             "memory-ram": { path: ["memory", "ram"], suffix: "%", max: 100 },
             "memory-swap": { path: ["memory", "swap"], suffix: "%", max: 100 },
-            "memory-disk": { path: ["memory", "disk"], suffix: "%", max: 100 },
-            "uptime": { path: ["uptime", "value"], isText: true }
+            "memory-disk": { path: ["memory", "disk"], suffix: "%", max: 100 }
         }
     };
     

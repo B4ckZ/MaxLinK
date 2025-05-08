@@ -1,0 +1,32 @@
+.uptime-button {
+    width: 255px;
+    height: 45px;
+    border-radius: calc(var(--border-radius) - 4px);
+    background-color: var(--nord0);
+    border: none;
+    outline: none;
+    display: flex;
+	align-items: center;
+    justify-content: center;
+    box-shadow: 
+        inset 2px 2px 3px var(--shadow-color),
+        inset -2px -2px 3px var(--highlight-color);
+}
+
+.uptime-icon {
+    width: 25px;
+    height: 25px;
+    margin-right: 10px;
+    color: var(--nord9);
+    flex-shrink: 0;
+}
+
+.uptime-value {
+    font-size: 18px;
+    font-family: monospace;
+    font-weight: 500;
+    color: var(--nord6);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

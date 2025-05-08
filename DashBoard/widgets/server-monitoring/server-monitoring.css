@@ -97,35 +97,3 @@
     height: 24px;
     color: var(--nord9);
 }
-
-/* Conteneur d'uptime */
-.uptime-container {
-    margin-top: auto;
-    padding-top: 12px;
-}
-
-.uptime-box {
-    background-color: var(--nord1);
-    border-radius: var(--border-radius);
-    padding: 10px;
-    border: 1px solid var(--nord3);
-    box-shadow: 
-        inset 2px 2px 4px var(--shadow-color),
-        inset -2px -2px 4px var(--highlight-color);
-}
-
-.uptime-title {
-    text-align: center;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--nord9);
-    margin-bottom: 6px;
-}
-
-.uptime-value {
-    text-align: center;
-    font-size: 20px;
-    font-family: monospace;
-    font-weight: 500;
-    color: var(--nord6);
-}
