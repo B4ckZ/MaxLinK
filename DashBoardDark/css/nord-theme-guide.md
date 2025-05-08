@@ -32,7 +32,7 @@ Ce guide sert de référence pour l'utilisation cohérente des couleurs du thèm
 }
 ```
 
-## Utilisation des couleurs dans le thème sombre (par défaut)
+## Utilisation des couleurs dans le thème sombre
 
 ### Arrière-plans
 - **`--nord0`**: Arrière-plan principal du dashboard, fond des conteneurs inset
@@ -58,23 +58,6 @@ Ce guide sert de référence pour l'utilisation cohérente des couleurs du thèm
 - **`--nord14`**: Vert (succès, validation, statut OK)
 - **`--nord15`**: Violet (informations spéciales, éléments mis en avant)
 
-## Utilisation des couleurs dans le thème clair
-
-En mode clair, nous inversons simplement les couleurs d'arrière-plan et de texte:
-
-### Arrière-plans
-- **`--nord6`**: Arrière-plan principal du dashboard, fond des conteneurs inset
-- **`--nord5`**: Arrière-plan des widgets  
-- **`--nord4`**: Arrière-plan des composants interactifs
-
-### Textes
-- **`--nord0`**: Texte primaire
-- **`--nord1`**: Texte secondaire
-- **`--nord2`**: Texte tertiaire
-
-### Accents et autres couleurs
-Les couleurs d'accent et d'état restent les mêmes que dans le thème sombre.
-
 ## Cas d'utilisation courants
 
 ### Composants de base
@@ -83,10 +66,6 @@ Les couleurs d'accent et d'état restent les mêmes que dans le thème sombre.
 .widget-container {
     background-color: var(--nord1);
     color: var(--nord6);
-}
-[data-theme="light"] .widget-container {
-    background-color: var(--nord5);
-    color: var(--nord0);
 }
 
 /* Titres */
@@ -99,9 +78,6 @@ Les couleurs d'accent et d'état restent les mêmes que dans le thème sombre.
     background-color: var(--nord0);
     box-shadow: inset 2px 2px 4px var(--shadow-color),
                 inset -2px -2px 4px var(--highlight-color);
-}
-[data-theme="light"] .inset-area {
-    background-color: var(--nord6);
 }
 ```
 
@@ -134,16 +110,8 @@ Les couleurs d'accent et d'état restent les mêmes que dans le thème sombre.
     background-color: var(--nord2);
     color: var(--nord6);
 }
-[data-theme="light"] .interactive-item {
-    background-color: var(--nord4);
-    color: var(--nord0);
-}
 
 .interactive-item:hover {
     background-color: var(--nord3);
-}
-[data-theme="light"] .interactive-item:hover {
-    background-color: var(--nord3);
-    color: var(--nord6);
 }
 ```

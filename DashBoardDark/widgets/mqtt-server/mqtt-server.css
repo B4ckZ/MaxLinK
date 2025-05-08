@@ -17,10 +17,6 @@
         inset -2px -2px 4px var(--highlight-color);
 }
 
-[data-theme="light"] .mqtt-status {
-    background-color: var(--nord6);
-}
-
 .mqtt-info-container {
     flex: 1;
 }
@@ -29,10 +25,6 @@
     font-size: 14px;
     color: var(--nord5);
     margin-bottom: 4px;
-}
-
-[data-theme="light"] .mqtt-info-container > div {
-    color: var(--nord1);
 }
 
 /* Status indicators */
@@ -69,10 +61,6 @@
     font-weight: 500;
     color: var(--nord8);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-[data-theme="light"] .mqtt-topic {
-    background-color: var(--nord4);
 }
 
 .mqtt-topic:hover {

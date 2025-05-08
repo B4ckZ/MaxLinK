@@ -16,10 +16,6 @@
     padding: 0;
 }
 
-[data-theme="light"] #reboot-button-widget {
-    background-color: var(--nord5);
-}
-
 /* Le bouton qui contient l'icône */
 .reboot-btn {
     position: absolute;
@@ -45,11 +41,6 @@
     margin: 0;
 }
 
-[data-theme="light"] .reboot-btn {
-    background-color: var(--nord6);
-    color: var(--nord0);
-}
-
 /* Effet au clic */
 .reboot-btn:active {
     transform: translate(-50%, -50%) scale(0.92);
@@ -65,10 +56,6 @@
     height: 25px;
     color: var(--nord6);
     transition: color 0.3s ease;
-}
-
-[data-theme="light"] .icon {
-    color: var(--nord0);
 }
 
 /* Animation de l'icône au survol */
