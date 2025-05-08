@@ -1,0 +1,102 @@
+/* Configuration de base du dashboard */
+.dashboard {
+    position: relative !important;
+    width: 100% !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background-color: var(--nord0) !important;
+}
+
+/* Configuration générique des widgets */
+.widget-container {
+    position: absolute !important;
+    margin: 0 !important;
+    padding: var(--widget-padding) !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    /* Suppression de la transformation pour ancrer au bas-gauche */
+    transform: none !important; 
+    transform-origin: bottom left !important;
+    /* Style neumorphique commun */
+    border-radius: var(--border-radius);
+    box-shadow: 
+        8px 8px 16px var(--shadow-color),
+        -8px -8px 16px var(--highlight-color);
+    background-color: var(--nord1);
+    /* Organisation interne des widgets */
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Variables pour représenter le point bas-gauche de l'écran */
+:root {
+    --base-h: 0px; /* H = hauteur (verticale) depuis le bas */
+    --base-d: 0px; /* D = droite (horizontale) depuis la gauche */
+}
+
+/* Configuration des widgets par ID avec ancrage bas-gauche */
+#logo {
+    bottom: calc(var(--base-h) + 775px) !important;
+    left: calc(var(--base-d) + 40px) !important;
+    width: 445px !important;
+    height: 135px !important;
+    z-index: 0 !important;
+}
+
+#uptime {
+    bottom: calc(var(--base-h) + 690px) !important;  /* Ajustez selon votre préférence */
+    left: calc(var(--base-d) + 210px) !important;   /* Ajustez selon votre préférence */
+    width: 235px !important;
+    height: 65px !important;
+    z-index: 0 !important;
+}
+
+#reboot-button {
+    bottom: calc(var(--base-h) + 690px) !important;
+    left: calc(var(--base-d) + 125px) !important;
+    width: 65px !important;
+    height: 65px !important;
+    z-index: 10 !important;
+}
+
+#server-monitoring {
+    bottom: calc(var(--base-h) + 460px) !important;
+    left: calc(var(--base-d) + 40px) !important;
+    width: 1210px !important;
+    height: 210px !important;
+    z-index: 0 !important;
+}
+
+#wifi-stats {
+    bottom: calc(var(--base-h) + 40px) !important;
+    left: calc(var(--base-d) + 40px) !important;
+    width: 390px !important;
+    height: 400px !important;
+    z-index: 0 !important;
+}
+
+#mqtt-server {
+    bottom: calc(var(--base-h) + 40px) !important;
+    left: calc(var(--base-d) + 450px) !important;
+    width: 390px !important;
+    height: 400px !important;
+    z-index: 0 !important;
+}
+
+#mqtt-logs-999 {
+    bottom: calc(var(--base-h) + 40px) !important;
+    left: calc(var(--base-d) + 860px) !important;
+    width: 390px !important;
+    height: 400px !important;
+    z-index: 0 !important;
+}
+
+#mqtt-logs-509-511 {
+    bottom: calc(var(--base-h) + 40px) !important;
+    left: calc(var(--base-d) + 1270px) !important;
+    width: 550px !important;
+    height: 870px !important;
+    z-index: 0 !important;
+}
