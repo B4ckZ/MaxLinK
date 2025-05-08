@@ -9,258 +9,134 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- CSS -->
+    <!-- CSS de base -->
+    <link rel="stylesheet" href="css/nord-theme.css">
     <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/widgets.css">
+    <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/custom-positions.css">
-    <link rel="stylesheet" href="themes/nord-theme.css">
+    
+    <!-- Le gestionnaire de widgets chargera dynamiquement les CSS des widgets -->
 </head>
 <body>
     <div class="dashboard">
-        <!-- Logo Widget -->
-        <div class="widget-container neumorphic" id="logo">
-            <img src="logo.png" alt="MAXLINK Logo" class="logo">
-            <div class="logo-text">MAXLINK</div>
-            <div class="theme-toggle" id="theme-toggle">
-                <div class="theme-toggle-thumb">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
+        <!-- Les widgets seront injectés ici via JavaScript -->
+    </div>
 
-        <!-- MQTT Logs Widget -->
-        <div class="widget-container neumorphic" id="mqtt-logs">
-            <div class="widget-title">
-                <svg xmlns="http://www.w3.org/2000/svg" class="widget-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                </svg>
-                <span>MQTT LOGS</span>
-            </div>
-            
-            <div class="logs-container">
-                <div class="log-line">
-                    <span class="log-date">02/05/25</span>
-                    <span class="log-time">01h34</span>
-                    <span class="log-device">B</span>
-                    <span class="log-id">458728264631679</span>
-                    <span class="status-indicator status-ok"></span>
-                </div>
-                <div class="log-line">
-                    <span class="log-date">02/05/25</span>
-                    <span class="log-time">01h34</span>
-                    <span class="log-device">B</span>
-                    <span class="log-id">458731588190281</span>
-                    <span class="status-indicator status-ok"></span>
-                </div>
-                <div class="log-line">
-                    <span class="log-date">02/05/25</span>
-                    <span class="log-time">01h34</span>
-                    <span class="log-device">A</span>
-                    <span class="log-id">458766577886311</span>
-                    <span class="status-indicator status-ok"></span>
-                </div>
-                <div class="log-line log-error">
-                    <span class="log-date">02/05/25</span>
-                    <span class="log-time">01h34</span>
-                    <span class="log-device">A</span>
-                    <span class="log-id">458753297791183</span>
-                    <span class="status-indicator status-error"></span>
-                </div>
-                <div class="log-line">
-                    <span class="log-date">02/05/25</span>
-                    <span class="log-time">01h34</span>
-                    <span class="log-device">B</span>
-                    <span class="log-id">458798733475328</span>
-                    <span class="status-indicator status-ok"></span>
-                </div>
-                <div class="log-line">
-                    <span class="log-date">02/05/25</span>
-                    <span class="log-time">01h34</span>
-                    <span class="log-device">C</span>
-                    <span class="log-id">458760731302895</span>
-                    <span class="status-indicator status-ok"></span>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Widget Serveur Monitoring -->
-<div class="widget-container neumorphic" id="server-monitoring">
-<!--     <div class="widget-title">
-        <svg xmlns="http://www.w3.org/2000/svg" class="widget-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-            <line x1="8" y1="21" x2="16" y2="21"></line>
-            <line x1="12" y1="17" x2="12" y2="21"></line>
-        </svg>
-        <span>Serveur Monitoring</span>
-    </div> -->
+    <!-- Scripts core -->
+    <script src="js/utils/utils.js"></script>
+    <script src="js/core/theme-switcher.js"></script>
+    <script src="js/core/widget-manager.js"></script>
+    <script src="js/core/dashboard.js"></script>
     
-    <div class="columns columns-with-separators">
-        <div class="column">
-            <div class="column-title">Processeur</div>
-            <div class="progress-row">
-                <span class="progress-label">Core 1</span>
-                <div class="progress-container neumorphic-inset">
-                    <div class="progress-bar" style="width: 62%"></div>
-                </div>
-                <span class="progress-value">62%</span>
-            </div>
-            
-            <div class="progress-row">
-                <span class="progress-label">Core 2</span>
-                <div class="progress-container neumorphic-inset">
-                    <div class="progress-bar" style="width: 41%"></div>
-                </div>
-                <span class="progress-value">41%</span>
-            </div>
-            
-            <div class="progress-row">
-                <span class="progress-label">Core 3</span>
-                <div class="progress-container neumorphic-inset">
-                    <div class="progress-bar" style="width: 79%"></div>
-                </div>
-                <span class="progress-value">79%</span>
-            </div>
-            
-            <div class="progress-row">
-                <span class="progress-label">Core 4</span>
-                <div class="progress-container neumorphic-inset">
-                    <div class="progress-bar" style="width: 59%"></div>
-                </div>
-                <span class="progress-value">59%</span>
-            </div>
-        </div>
-        
-        <div class="separator"></div> <!-- Séparateur vertical -->
-        
-        <div class="column">
-            <div class="column-title">Température & Fréquence</div>
-            <div class="progress-row">
-                <span class="progress-label-wide">T-CPU</span>
-                <div class="progress-container neumorphic-inset">
-                    <div class="progress-bar" style="width: 69%"></div>
-                </div>
-                <span class="progress-value">69°C</span>
-            </div>
-            
-            <div class="progress-row">
-                <span class="progress-label-wide">F-CPU</span>
-                <div class="progress-container neumorphic-inset">
-                    <div class="progress-bar" style="width: 60%"></div>
-                </div>
-                <span class="progress-value">2.8 GHz</span>
-            </div>
-            
-            <div class="progress-row">
-                <span class="progress-label-wide">T-GPU</span>
-                <div class="progress-container neumorphic-inset">
-                    <div class="progress-bar" style="width: 64%"></div>
-                </div>
-                <span class="progress-value">64°C</span>
-            </div>
-            
-            <div class="progress-row">
-                <span class="progress-label-wide">F-GPU</span>
-                <div class="progress-container neumorphic-inset">
-                    <div class="progress-bar" style="width: 60%"></div>
-                </div>
-                <span class="progress-value">354 MHz</span>
-            </div>
-        </div>
-        
-        <div class="separator"></div> <!-- Séparateur vertical -->
+    <!-- Script de vérification de la structure des fichiers -->
+    <script>
+        // Fonction pour vérifier l'existence d'un fichier
+        function checkFileExists(url) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('HEAD', url, true);
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve(true);
+                    } else {
+                        resolve(false);
+                    }
+                };
+                xhr.onerror = function() {
+                    resolve(false);
+                };
+                xhr.send();
+            });
+        }
 
-        <div class="column">
-            <div class="column-title">Stockage & Mémoire</div>
-            <div class="progress-row">
-                <span class="progress-label-short">RAM</span>
-                <div class="progress-container neumorphic-inset">
-                    <div class="progress-bar" style="width: 60%"></div>
-                </div>
-                <span class="progress-value">60%</span>
-            </div>
-            
-            <div class="progress-row">
-                <span class="progress-label-short">SSD</span>
-                <div class="progress-container neumorphic-inset">
-                    <div class="progress-bar" style="width: 45%"></div>
-                </div>
-                <span class="progress-value">45%</span>
-            </div>
-        </div>
-    </div>
-</div>
-        
-        <!-- Widget WiFi Stats -->
-        <div class="widget-container neumorphic" id="wifi-stats">
-            <div class="widget-title">
-                <svg xmlns="http://www.w3.org/2000/svg" class="widget-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
-                    <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
-                    <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
-                    <circle cx="12" cy="20" r="1"></circle>
-                </svg>
-                <span>Wifi Stats & Clients</span>
-            </div>
-            
-            <div class="network-status">
-                <div class="network-info-container">
-                    <div class="network-info">S.S.I.D <span class="network-value">MaxLinkNetwork</span></div>
-                    <div class="network-info">Channel <span class="network-value">6 (2.4 GHz)</span></div>
-                </div>
-                <div class="status-indicator status-ok"></div>
-            </div>
-            
-            <div class="client">
-                <div>ESP32-509</div>
-                <div>IP # 31.43.149.200 | 67 Mbps | 3h25m</div>
-            </div>
-            
-            <div class="client">
-                <div>ESP32-511</div>
-                <div>IP # 64.24.151.214 | 67 Mbps | 3h25m</div>
-            </div>
-            
-            <div class="client">
-                <div>Android de JJ</div>
-                <div>IP # 41.196.93.233 | 67 Mbps | 3h25m</div>
-            </div>
-        </div>
-        
-        <!-- Widget Serveur MQTT -->
-        <div class="widget-container neumorphic" id="mqtt-server">
-            <div class="widget-title">
-                <svg xmlns="http://www.w3.org/2000/svg" class="widget-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                    <path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"></path>
-                </svg>
-                <span>Serveur MQTT</span>
-            </div>
-            
-            <div class="mqtt-status">
-                <div class="mqtt-info-container">
-                    <div>15.234 reçus | 8.712 envoyés</div>
-                    <div>Uptime : 5j 2h 32m | Latence</div>
-                </div>
-                <div class="status-indicator status-ok"></div>
-            </div>
-            
-            <div class="mqtt-topics">
-                <div class="mqtt-topic">weri/device/+/temp</div>
-                <div class="mqtt-topic">weri/device/+/humidity</div>
-                <div class="mqtt-topic">weri/device/+/status</div>
-                <div class="mqtt-topic">weri/system/stats</div>
-                <div class="mqtt-topic">weri/system/updates</div>
-                <div class="mqtt-topic">weri/device/+/battery</div>
-                <div class="mqtt-topic">weri/device/+/connection</div>
-                <div class="mqtt-topic">weri/network/pid/reload</div>
-            </div>
-        </div>
-    </div>
+        // Liste des widgets et leurs fichiers nécessaires
+        const widgetsToCheck = [
+            'logo',
+            'mqtt-logs-509-511',
+            'server-monitoring',
+            'wifi-stats',
+            'mqtt-server'
+        ];
 
-    <!-- Scripts JavaScript -->
-    <script src="js/theme-switcher.js"></script>
-    <script src="js/dashboard.js"></script>
+        // Fonction principale de vérification
+        async function verifyFiles() {
+            console.log("=== VÉRIFICATION DES FICHIERS ===");
+            
+            // Vérification des fichiers core
+            const coreFiles = [
+                'css/nord-theme.css',
+                'css/base.css',
+                'css/layout.css',
+                'css/custom-positions.css',
+                'js/core/theme-switcher.js',
+                'js/utils/utils.js',
+                'js/core/widget-manager.js',
+                'js/core/dashboard.js'
+            ];
+            
+            console.log("Vérification des fichiers core:");
+            for (const file of coreFiles) {
+                const exists = await checkFileExists(file);
+                console.log(`- ${file}: ${exists ? '✓' : '✗'}`);
+            }
+            
+            // Vérification des widgets
+            console.log("\nVérification des widgets:");
+            for (const widget of widgetsToCheck) {
+                console.log(`\nWidget: ${widget}`);
+                
+                const widgetFiles = [
+                    `widgets/${widget}/${widget}.html`,
+                    `widgets/${widget}/${widget}.css`,
+                    `widgets/${widget}/${widget}.js`
+                ];
+                
+                for (const file of widgetFiles) {
+                    const exists = await checkFileExists(file);
+                    console.log(`- ${file}: ${exists ? '✓' : '✗'}`);
+                }
+            }
+            
+            console.log("\n=== FIN DE LA VÉRIFICATION ===");
+        }
+
+        // Exécuter la vérification au chargement
+        document.addEventListener('DOMContentLoaded', verifyFiles);
+    </script>
+    
+    <!-- Configuration simplifiée des widgets -->
+    <script>
+        // Configuration des widgets à charger (simplifiée)
+        const widgetsConfig = [
+            { id: 'logo' },
+			{ id: 'theme-toggle' },
+			{ id: 'reboot-button' },
+            { id: 'server-monitoring' },
+            { id: 'mqtt-logs-509-511' },
+			{ id: 'mqtt-logs-999' },
+            { id: 'wifi-stats' },
+            { id: 'mqtt-server' }
+        ];
+
+        // Initialisation du dashboard avec la configuration
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialiser le gestionnaire de widgets
+            WidgetManager.init(widgetsConfig);
+            
+            // Ajouter des commandes accessibles via la console
+            window.DashboardCommands = {
+                // Rafraîchir les widgets
+                refreshWidgets: function() {
+                    Object.keys(WidgetManager.getWidgets()).forEach(id => {
+                        const widget = WidgetManager.getWidget(id);
+                        if (widget && typeof widget.loadData === 'function') {
+                            widget.loadData();
+                        }
+                    });
+                    return true;
+                }
+            };
+        });
+    </script>
 </body>
 </html>

@@ -1,8 +1,10 @@
 /* 
  * Styles pour le positionnement personnalisé des widgets
- * Approche avec le centre (0,0) comme origine et nomenclature H, B, G, D
+ * Approche avec ancrage au coin bas-gauche
+ * Utilisation directe des variables Nord
  */
 
+/* Configuration de base du dashboard */
 .dashboard {
     position: relative !important;
     width: 100% !important;
@@ -10,69 +12,105 @@
     overflow: hidden !important;
     padding: 0 !important;
     margin: 0 !important;
-    background-color: var(--bg-primary) !important;
+    background-color: var(--nord0) !important;
 }
 
-/* Réinitialiser tous les styles des widgets pour éviter les conflits */
-.dashboard > * {
+[data-theme="light"] .dashboard {
+    background-color: var(--nord6) !important;
+}
+
+/* Configuration générique des widgets */
+.widget-container {
     position: absolute !important;
     margin: 0 !important;
     padding: var(--widget-padding) !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
-    /* Transformation qui permet de positionner les éléments depuis le centre */
-    transform: translate(-50%, -50%) !important;
+    /* Suppression de la transformation pour ancrer au bas-gauche */
+    transform: none !important; 
+    transform-origin: bottom left !important;
+    /* Style neumorphique commun */
+    border-radius: var(--border-radius);
+    box-shadow: 
+        8px 8px 16px var(--shadow-color),
+        -8px -8px 16px var(--highlight-color);
+    background-color: var(--nord1);
+    /* Organisation interne des widgets */
+    display: flex !important;
+    flex-direction: column !important;
 }
 
-/* Variables pour représenter le centre de l'écran */
+[data-theme="light"] .widget-container {
+    background-color: var(--nord5);
+}
+
+/* Variables pour représenter le point bas-gauche de l'écran */
 :root {
-    --centre-h: 50vh; /* H = hauteur (verticale) */
-    --centre-d: 50vw; /* D = droite (horizontale) */
+    --base-h: 0px; /* H = hauteur (verticale) depuis le bas */
+    --base-d: 0px; /* D = droite (horizontale) depuis la gauche */
 }
 
-/* Styles spécifiques pour chaque widget par ID */
+/* Configuration des widgets par ID avec ancrage bas-gauche */
 #logo {
-    top: calc(var(--centre-h) - 350px) !important;    /* H-350 = 350px vers le haut */
-    left: calc(var(--centre-d) - 600px) !important;   /* G-400 = 400px vers la gauche */
-    width: 500px !important;
-    height: 200px !important;
+    bottom: calc(var(--base-h) + 775px) !important;
+    left: calc(var(--base-d) + 40px) !important;
+    width: 445px !important;
+    height: 135px !important;
+    z-index: 0 !important;
+}
+
+#reboot-button {
+    bottom: calc(var(--base-h) + 690px) !important;
+    left: calc(var(--base-d) + 125px) !important;
+    width: 65px !important;
+    height: 65px !important;
+    z-index: 0 !important;
+}
+
+#theme-toggle {
+    bottom: calc(var(--base-h) + 690px) !important;
+    left: calc(var(--base-d) + 40px) !important;
+    width: 65px !important;
+    height: 65px !important;
     z-index: 0 !important;
 }
 
 #server-monitoring {
-    top: calc(var(--centre-h) - 105px) !important;     /* H-50 = 50px vers le haut */
-    left: calc(var(--centre-d) - 290px) !important;                 /* Centre horizontal */
-    width: 1130px !important;
-    height: 215px !important;
-    z-index: 0 !important;
-}
-
-#mqtt-logs {
-    top: calc(var(--centre-h) + 10px) !important;
-    left: calc(var(--centre-d) + 580px) !important;
-    width: 550px !important;
-    height: 850px !important;
+    bottom: calc(var(--base-h) + 460px) !important;
+    left: calc(var(--base-d) + 40px) !important;
+    width: 1210px !important;
+    height: 210px !important;
     z-index: 0 !important;
 }
 
 #wifi-stats {
-    top: calc(var(--centre-h) + 235px) !important;    /* B+200 = 200px vers le bas */
-    left: calc(var(--centre-d) - 580px) !important;   /* G-400 = 400px vers la gauche */
-    width: 550px !important;
+    bottom: calc(var(--base-h) + 40px) !important;
+    left: calc(var(--base-d) + 40px) !important;
+    width: 390px !important;
     height: 400px !important;
     z-index: 0 !important;
 }
 
 #mqtt-server {
-    top: calc(var(--centre-h) + 235px) !important;    /* B+200 = 200px vers le bas */
-    left: calc(var(--centre-d) + 0px) !important;   /* D+400 = 400px vers la droite */
-    width: 550px !important;
+    bottom: calc(var(--base-h) + 40px) !important;
+    left: calc(var(--base-d) + 450px) !important;
+    width: 390px !important;
     height: 400px !important;
     z-index: 0 !important;
 }
 
-/* Correction pour l'alignement des contenus à l'intérieur des widgets */
-.dashboard > * {
-    display: flex !important;
-    flex-direction: column !important;
+#mqtt-logs-999 {
+    bottom: calc(var(--base-h) + 40px) !important;
+    left: calc(var(--base-d) + 860px) !important;
+    width: 390px !important;
+    height: 400px !important;
+    z-index: 0 !important;
+}
+
+#mqtt-logs-509-511 {
+    bottom: calc(var(--base-h) + 40px) !important;
+    left: calc(var(--base-d) + 1270px) !important;
+    width: 550px !important;
+    height: 870px !important;
+    z-index: 0 !important;
 }
