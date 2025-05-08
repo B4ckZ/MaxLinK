@@ -51,8 +51,9 @@
 .progress-bar {
     height: 100%;
     border-radius: 4px;
-    transition: width 0.8s ease-in-out;
-    background: linear-gradient(to right, var(--nord10), var(--nord12));
+    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* Dégradé défini uniquement en CSS */
+    background: linear-gradient(to right, #5e81ac, #5e81ac, #d08770);
 }
 
 .progress-value {
@@ -81,10 +82,6 @@
 }
 
 /* Styles pour les séparateurs verticaux */
-.columns-with-separators {
-    position: relative;
-}
-
 .separator {
     width: 1px;
     align-self: stretch;
@@ -113,4 +110,45 @@
     width: 24px;
     height: 24px;
     color: var(--nord9);
+}
+
+/* Conteneur d'uptime */
+.uptime-container {
+    margin-top: auto;
+    padding-top: 12px;
+}
+
+.uptime-box {
+    background-color: var(--nord1);
+    border-radius: var(--border-radius);
+    padding: 10px;
+    border: 1px solid var(--nord3);
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-color),
+        inset -2px -2px 4px var(--highlight-color);
+}
+
+[data-theme="light"] .uptime-box {
+    background-color: var(--nord5);
+    border: 1px solid var(--nord4);
+}
+
+.uptime-title {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--nord9);
+    margin-bottom: 6px;
+}
+
+.uptime-value {
+    text-align: center;
+    font-size: 20px;
+    font-family: monospace;
+    font-weight: 500;
+    color: var(--nord6);
+}
+
+[data-theme="light"] .uptime-value {
+    color: var(--nord0);
 }

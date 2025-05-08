@@ -1,42 +1,65 @@
 /**
  * Widget Server Monitoring pour MAXLINK Dashboard
- * Affiche les métriques principales du serveur
+ * Version simplifiée avec mode simulation (préparé pour MQTT ultérieurement)
  */
 
 const serverMonitoringWidget = (function() {
-    // Variables privées du widget
+    // Variables privées
     let widgetElement;
-    let config = {
-        // Configuration par défaut du widget
-        updateInterval: 5000, // Intervalle de mise à jour en millisecondes
-        // URL d'API fictive - dans un cas réel, ce serait l'URL de votre API
-        apiEndpoint: 'api/server-stats'
-    };
+    let updateTimer;
     
-    // État interne des données
-    let data = {
-        cpu: {
-            core1: 62,
-            core2: 41,
-            core3: 79,
-            core4: 59
+    // Configuration
+    const config = {
+        updateInterval: 1000, // Rafraîchissement à 1 seconde
+        // Configuration des différentes métriques affichées
+        metrics: {
+            "cpu-core1": { path: ["cpu", "core1"], suffix: "%", max: 100 },
+            "cpu-core2": { path: ["cpu", "core2"], suffix: "%", max: 100 },
+            "cpu-core3": { path: ["cpu", "core3"], suffix: "%", max: 100 },
+            "cpu-core4": { path: ["cpu", "core4"], suffix: "%", max: 100 },
+            "temp-cpu": { path: ["temperature", "cpu"], suffix: "°C", max: 100 },
+            "temp-gpu": { path: ["temperature", "gpu"], suffix: "°C", max: 100 },
+            "freq-cpu": { path: ["frequency", "cpu"], suffix: " GHz", max: 2.5 },
+            "freq-gpu": { path: ["frequency", "gpu"], suffix: " MHz", max: 750 },
+            "memory-ram": { path: ["memory", "ram"], suffix: "%", max: 100 },
+            "memory-swap": { path: ["memory", "swap"], suffix: "%", max: 100 },
+            "memory-disk": { path: ["memory", "disk"], suffix: "%", max: 100 },
+            "uptime": { path: ["uptime", "value"], isText: true }
         },
-        temperature: {
-            cpu: 69,
-            gpu: 64
-        },
-        frequency: {
-            cpu: 2.8,
-            gpu: 354
-        },
-        memory: {
-            ram: 60,
-            ssd: 45
+        // Configuration MQTT (pour utilisation future)
+        mqtt: {
+            enabled: false,
+            broker: "ws://raspberrypi.local:9001",
+            clientId: "dashboard-server-monitor-" + Math.random().toString(16).substr(2, 8),
+            topicBase: "maxlink/system/stats/"
         }
     };
     
-    // Intervalle de mise à jour
-    let updateTimer;
+    // Données courantes (commençons avec des valeurs simulées)
+    let currentData = {
+        cpu: {
+            core1: 45,
+            core2: 30,
+            core3: 60,
+            core4: 20
+        },
+        temperature: {
+            cpu: 55,
+            gpu: 50
+        },
+        frequency: {
+            cpu: 1.8,
+            gpu: 400
+        },
+        memory: {
+            ram: 62,
+            swap: 10,
+            disk: 45
+        },
+        uptime: {
+            value: "0d 12h 34m 56s"
+        }
+    };
     
     /**
      * Initialise le widget
@@ -46,17 +69,25 @@ const serverMonitoringWidget = (function() {
     function init(element, customConfig = {}) {
         widgetElement = element;
         
-        // Fusionner la configuration personnalisée avec les valeurs par défaut
-        config = {...config, ...customConfig};
+        // Fusionner la configuration personnalisée
+        if (customConfig) {
+            // Fusion récursive pour les sous-objets
+            if (customConfig.mqtt) {
+                Object.assign(config.mqtt, customConfig.mqtt);
+                delete customConfig.mqtt;
+            }
+            
+            // Fusion du reste de la configuration
+            Object.assign(config, customConfig);
+        }
         
-        console.log('Widget Server Monitoring initialisé');
-        
-        // Animer les barres de progression initialement
+        // Animation initiale des barres
         animateProgressBars();
         
-        // Premier chargement des données et démarrage de la mise à jour périodique
-        loadData();
-        startUpdateInterval();
+        // Démarrer le mode simulation en attendant d'avoir MQTT
+        startSimulation();
+        
+        console.log('Widget Server Monitoring initialisé en mode simulation');
     }
     
     /**
@@ -77,152 +108,125 @@ const serverMonitoringWidget = (function() {
     }
     
     /**
-     * Démarre la mise à jour périodique des données
+     * Démarre le mode simulation
      */
-    function startUpdateInterval() {
-        // Nettoyer l'intervalle précédent si existant
-        if (updateTimer) {
-            clearInterval(updateTimer);
-        }
+    function startSimulation() {
+        console.log("Mode simulation activé pour le widget Server Monitoring");
         
-        // Créer un nouvel intervalle
-        updateTimer = setInterval(() => {
-            loadData();
+        // Mettre à jour l'interface avec les données initiales
+        updateUI();
+        
+        // Mettre à jour régulièrement avec des données simulées
+        updateTimer = setInterval(function() {
+            simulateDataChanges();
+            updateUI();
         }, config.updateInterval);
     }
     
     /**
-     * Charge ou rafraîchit les données du widget
-     */
-    function loadData() {
-        // Dans une application réelle, vous feriez un appel API ici
-        // Pour l'exemple, nous simulons des données changeantes
-        
-        // Simuler des changements de données
-        simulateDataChanges();
-        
-        // Mettre à jour l'interface avec les nouvelles données
-        updateUI();
-    }
-    
-    /**
-     * Simule des changements de données pour la démonstration
+     * Simule des changements de données pour le mode de démonstration
      */
     function simulateDataChanges() {
-        // Fonction utilitaire pour générer une variation aléatoire
-        const randomVariation = (value, maxVariation = 5, min = 0, max = 100) => {
+        // Fonction utilitaire pour générer des variations aléatoires
+        const randomVariation = (value, maxVariation, min, max) => {
             const variation = (Math.random() - 0.5) * 2 * maxVariation;
             return Math.min(Math.max(value + variation, min), max);
         };
         
-        // Varier les données CPU
-        data.cpu.core1 = randomVariation(data.cpu.core1);
-        data.cpu.core2 = randomVariation(data.cpu.core2);
-        data.cpu.core3 = randomVariation(data.cpu.core3);
-        data.cpu.core4 = randomVariation(data.cpu.core4);
+        // CPU
+        currentData.cpu.core1 = Math.round(randomVariation(currentData.cpu.core1, 5, 10, 95));
+        currentData.cpu.core2 = Math.round(randomVariation(currentData.cpu.core2, 5, 10, 95));
+        currentData.cpu.core3 = Math.round(randomVariation(currentData.cpu.core3, 5, 10, 95));
+        currentData.cpu.core4 = Math.round(randomVariation(currentData.cpu.core4, 5, 10, 95));
         
-        // Varier les températures
-        data.temperature.cpu = randomVariation(data.temperature.cpu, 1, 40, 90);
-        data.temperature.gpu = randomVariation(data.temperature.gpu, 1, 40, 90);
+        // Température
+        currentData.temperature.cpu = Math.round(randomVariation(currentData.temperature.cpu, 1, 45, 85));
+        currentData.temperature.gpu = Math.round(randomVariation(currentData.temperature.gpu, 1, 40, 80));
         
-        // Varier légèrement les fréquences
-        data.frequency.cpu = parseFloat(randomVariation(data.frequency.cpu, 0.1, 1.5, 4.0).toFixed(1));
-        data.frequency.gpu = Math.round(randomVariation(data.frequency.gpu, 10, 200, 800));
+        // Fréquence
+        currentData.frequency.cpu = parseFloat(randomVariation(currentData.frequency.cpu, 0.1, 1.2, 2.2).toFixed(1));
+        currentData.frequency.gpu = Math.round(randomVariation(currentData.frequency.gpu, 10, 300, 650));
         
-        // Varier la mémoire
-        data.memory.ram = randomVariation(data.memory.ram, 2);
-        data.memory.ssd = randomVariation(data.memory.ssd, 1);
+        // Mémoire
+        currentData.memory.ram = Math.round(randomVariation(currentData.memory.ram, 2, 20, 95));
+        currentData.memory.swap = Math.round(randomVariation(currentData.memory.swap, 1, 0, 50));
+        currentData.memory.disk = Math.round(randomVariation(currentData.memory.disk, 0.5, 30, 90));
+        
+        // Simuler l'écoulement du temps pour l'uptime
+        let matches = currentData.uptime.value.match(/(\d+)d (\d+)h (\d+)m (\d+)s/);
+        if (matches) {
+            let [, days, hours, minutes, seconds] = matches.map(Number);
+            seconds += 1;
+            if (seconds >= 60) {
+                minutes += Math.floor(seconds / 60);
+                seconds %= 60;
+            }
+            if (minutes >= 60) {
+                hours += Math.floor(minutes / 60);
+                minutes %= 60;
+            }
+            if (hours >= 24) {
+                days += Math.floor(hours / 24);
+                hours %= 24;
+            }
+            currentData.uptime.value = `${days}d ${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`;
+        }
     }
     
     /**
-     * Met à jour l'interface utilisateur avec les nouvelles données
+     * Met à jour l'interface utilisateur avec les données actuelles
      */
     function updateUI() {
-        // Mettre à jour les barres de progression CPU
-        updateProgressBar('Core 1', data.cpu.core1, '%');
-        updateProgressBar('Core 2', data.cpu.core2, '%');
-        updateProgressBar('Core 3', data.cpu.core3, '%');
-        updateProgressBar('Core 4', data.cpu.core4, '%');
-        
-        // Mettre à jour les températures
-        updateProgressBar('T-CPU', data.temperature.cpu, '°C');
-        updateProgressBar('T-GPU', data.temperature.gpu, '°C');
-        
-        // Mettre à jour les fréquences
-        updateProgressBar('F-CPU', data.frequency.cpu, ' GHz');
-        updateProgressBar('F-GPU', data.frequency.gpu, ' MHz');
-        
-        // Mettre à jour la mémoire
-        updateProgressBar('RAM', data.memory.ram, '%');
-        updateProgressBar('SSD', data.memory.ssd, '%');
-    }
-    
-    /**
-     * Met à jour une barre de progression spécifique
-     * @param {string} label - Étiquette de la barre de progression
-     * @param {number} value - Valeur à afficher
-     * @param {string} unit - Unité à afficher (%, °C, etc.)
-     */
-    function updateProgressBar(label, value, unit) {
-        // Trouver la ligne contenant cette étiquette
-        const progressRows = widgetElement.querySelectorAll('.progress-row');
-        let targetRow;
-        
-        for (const row of progressRows) {
-            const labelElement = row.querySelector('.progress-label, .progress-label-wide, .progress-label-short');
-            if (labelElement && labelElement.textContent.trim() === label) {
-                targetRow = row;
-                break;
-            }
-        }
-        
-        if (targetRow) {
-            // Mettre à jour la barre de progression
-            const progressBar = targetRow.querySelector('.progress-bar');
-            const progressValue = targetRow.querySelector('.progress-value');
+        // Parcourir toutes les métriques
+        Object.keys(config.metrics).forEach(metricId => {
+            const metricConfig = config.metrics[metricId];
+            const element = widgetElement.querySelector(`[data-metric="${metricId}"]`);
             
-            if (progressBar) {
-                // Pour les pourcentages, la largeur est directement la valeur
-                // Pour les autres unités, on calcule une proportion
-                let width;
+            if (element) {
+                // Récupérer la valeur depuis les données
+                let value = getNestedValue(currentData, metricConfig.path);
                 
-                if (unit === '%') {
-                    width = value;
-                } else if (unit === '°C') {
-                    // Température: échelle de 30°C à 100°C
-                    width = ((value - 30) / 70) * 100;
-                } else if (unit === ' GHz') {
-                    // Fréquence CPU: échelle de 1 à 5 GHz
-                    width = (value / 5) * 100;
-                } else if (unit === ' MHz') {
-                    // Fréquence GPU: échelle de 100 à 1000 MHz
-                    width = (value / 1000) * 100;
+                if (value !== undefined) {
+                    // Si c'est un texte simple (comme l'uptime)
+                    if (metricConfig.isText) {
+                        element.textContent = value;
+                    } else {
+                        // Sinon c'est une barre de progression
+                        const progressBar = element.querySelector('.progress-bar');
+                        const progressValue = element.querySelector('.progress-value');
+                        
+                        if (progressBar) {
+                            // Calculer le pourcentage pour la largeur de la barre
+                            const percentage = (value / metricConfig.max) * 100;
+                            progressBar.style.width = `${Math.min(percentage, 100)}%`;
+                        }
+                        
+                        if (progressValue) {
+                            // Mettre à jour le texte de la valeur
+                            progressValue.textContent = `${value}${metricConfig.suffix}`;
+                        }
+                    }
                 }
-                
-                // Limiter la largeur entre 0 et 100%
-                width = Math.min(Math.max(width, 0), 100);
-                
-                progressBar.style.width = `${width}%`;
             }
-            
-            if (progressValue) {
-                progressValue.textContent = `${value}${unit}`;
-            }
-        }
+        });
     }
     
     /**
-     * Appelé lors du redimensionnement de la fenêtre
+     * Récupère une valeur imbriquée dans un objet
+     * @param {Object} obj - Objet source
+     * @param {Array} path - Chemin d'accès à la valeur
+     * @returns {*} La valeur ou undefined si non trouvée
      */
-    function onResize() {
-        // Aucune action spécifique nécessaire pour ce widget lors du redimensionnement
+    function getNestedValue(obj, path) {
+        return path.reduce((prev, curr) => {
+            return prev && prev[curr] !== undefined ? prev[curr] : undefined;
+        }, obj);
     }
     
     /**
      * Nettoyage lors de la destruction du widget
      */
     function destroy() {
-        // Arrêter l'intervalle de mise à jour
         if (updateTimer) {
             clearInterval(updateTimer);
             updateTimer = null;
@@ -230,24 +234,52 @@ const serverMonitoringWidget = (function() {
     }
     
     /**
-     * Définit une nouvelle configuration
-     * @param {Object} newConfig - Nouvelle configuration
+     * Mises à jour de configuration
+     * @param {Object} newConfig - Nouvelles configurations
      */
     function setConfig(newConfig) {
-        config = {...config, ...newConfig};
-        
-        // Si l'intervalle de mise à jour a changé, redémarrer l'intervalle
-        if (newConfig.updateInterval) {
-            startUpdateInterval();
+        // Fusion récursive pour les sous-objets
+        if (newConfig.mqtt) {
+            Object.assign(config.mqtt, newConfig.mqtt);
+            delete newConfig.mqtt;
         }
+        
+        // Fusion du reste
+        Object.assign(config, newConfig);
+        
+        // Si l'intervalle a changé, redémarrer la simulation
+        if (newConfig.updateInterval && updateTimer) {
+            clearInterval(updateTimer);
+            updateTimer = setInterval(function() {
+                simulateDataChanges();
+                updateUI();
+            }, config.updateInterval);
+        }
+    }
+    
+    /**
+     * Fonction pour activer le mode MQTT (préparé pour l'utilisation future)
+     * @param {Object} mqttConfig - Configuration MQTT (optionnelle)
+     */
+    function enableMQTT(mqttConfig = {}) {
+        // Cette fonction sera implémentée plus tard lorsque vous aurez accès au Raspberry Pi
+        console.log("Mode MQTT préparé pour une implémentation future");
+        
+        // Mettre à jour la configuration MQTT si fournie
+        if (mqttConfig) {
+            Object.assign(config.mqtt, mqttConfig);
+        }
+        
+        // Marquer MQTT comme activé
+        config.mqtt.enabled = true;
     }
     
     // API publique du widget
     return {
         init,
-        loadData,
+        destroy,
         setConfig,
-        onResize,
-        destroy
+        enableMQTT,
+        onResize: function() {} // Fonction vide pour compatibilité avec l'API de widget
     };
 })();
