@@ -56,8 +56,8 @@
 #uptime {
     bottom: calc(var(--base-h) + 690px) !important;  /* Ajustez selon votre préférence */
     left: calc(var(--base-d) + 210px) !important;   /* Ajustez selon votre préférence */
-    width: 275px !important;
-    height: 65px !important;
+    width: 375px !important;
+    height: 165px !important;
     z-index: 0 !important;
 }
 
