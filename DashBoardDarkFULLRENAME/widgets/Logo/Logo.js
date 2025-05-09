@@ -1,4 +1,4 @@
-const logoWidget = (function() {
+const logo = (function() {
     function init(element) {
         console.log('Widget Logo initialisé');
     }
