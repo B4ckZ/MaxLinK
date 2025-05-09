@@ -72,31 +72,31 @@
 #wifi-stats {
     bottom: calc(var(--base-h) + 40px) !important;
     left: calc(var(--base-d) + 40px) !important;
-    width: 390px !important;
+    width: 500px !important;
     height: 400px !important;
     z-index: 0 !important;
 }
 
 #mqtt-server {
     bottom: calc(var(--base-h) + 40px) !important;
-    left: calc(var(--base-d) + 450px) !important;
-    width: 390px !important;
+    left: calc(var(--base-d) + 560px) !important;
+    width: 500px !important;
     height: 400px !important;
     z-index: 0 !important;
 }
 
 #mqtt-logs-999 {
     bottom: calc(var(--base-h) + 40px) !important;
-    left: calc(var(--base-d) + 860px) !important;
-    width: 390px !important;
+    left: calc(var(--base-d) + 1080px) !important;
+    width: 500px !important;
     height: 400px !important;
     z-index: 0 !important;
 }
 
 #mqtt-logs-509-511 {
     bottom: calc(var(--base-h) + 40px) !important;
-    left: calc(var(--base-d) + 1270px) !important;
-    width: 550px !important;
+    left: calc(var(--base-d) + 1600px) !important;
+    width: 500px !important;
     height: 870px !important;
     z-index: 0 !important;
 }
