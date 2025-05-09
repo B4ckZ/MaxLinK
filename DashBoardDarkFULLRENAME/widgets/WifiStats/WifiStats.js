@@ -1,9 +1,4 @@
-/**
- * Widget WiFi Stats pour MAXLINK Dashboard
- * Affiche les informations sur le réseau WiFi et les clients connectés
- */
-
-const wifiStatsWidget = (function() {
+const wifistats = (function() {
     // Variables privées du widget
     let widgetElement;
     let clientsContainer;

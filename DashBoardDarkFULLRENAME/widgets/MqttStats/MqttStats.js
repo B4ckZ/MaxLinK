@@ -1,9 +1,4 @@
-/**
- * Widget MQTT Server pour MAXLINK Dashboard
- * Affiche les informations sur le serveur MQTT
- */
-
-const mqttServerWidget = (function() {
+const mqttstats = (function() {
     // Variables privées du widget
     let widgetElement;
     let mqttTopicsContainer;

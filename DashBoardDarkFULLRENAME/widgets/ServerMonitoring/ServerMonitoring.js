@@ -1,4 +1,4 @@
-const serverMonitoringWidget = (function() {
+const servermonitoring = (function() {
     // Variables privées
     let widgetElement;
     

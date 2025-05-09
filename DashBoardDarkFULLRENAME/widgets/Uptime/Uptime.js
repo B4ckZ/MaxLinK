@@ -1,9 +1,4 @@
-/**
- * Widget Uptime pour MAXLINK Dashboard
- * Affiche le temps écoulé depuis le dernier redémarrage du système
- */
-
-const uptimeWidget = (function() {
+const uptime = (function() {
     // Variables privées
     let widgetElement;
     let uptimeElement;

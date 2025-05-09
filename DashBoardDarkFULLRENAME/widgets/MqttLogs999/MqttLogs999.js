@@ -1,9 +1,4 @@
-/**
- * Widget MQTT Logs pour MAXLINK Dashboard
- * Affiche les logs MQTT
- */
-
-const mqttLogsWidget = (function() {
+const mqttlogs999 = (function() {
     // Variables privées du widget
     let widgetElement;
     let logsContainer;

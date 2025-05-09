@@ -1,8 +1,4 @@
-/**
- * Widget reboot-button pour redémarrer le Raspberry Pi
- */
-
-const rebootButtonWidget = (function() {
+const rebootbutton = (function() {
     // Variables privées du widget
     let widgetElement;
     let rebootBtn;
