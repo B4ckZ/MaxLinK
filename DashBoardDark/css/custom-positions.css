@@ -64,7 +64,7 @@
 #server-monitoring {
     bottom: calc(var(--base-h) + 460px) !important;
     left: calc(var(--base-d) + 40px) !important;
-    width: 1210px !important;
+    width: 1540px !important;
     height: 210px !important;
     z-index: 0 !important;
 }
