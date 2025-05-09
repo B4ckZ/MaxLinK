@@ -47,10 +47,10 @@
 
 #clock {
     bottom: calc(var(--base-h) + 775px) !important;
-    left: calc(var(--base-d) + 40px) !important;
-    width: 445px !important;
+    left: calc(var(--base-d) + 500px) !important; /* Changé de 40px à 500px */
+    width: 245px !important; /* Changé de 445px à 245px */
     height: 135px !important;
-    z-index: 10 !important;
+    z-index: 0 !important; /* Même z-index que les autres */
 }
 
 #uptime {

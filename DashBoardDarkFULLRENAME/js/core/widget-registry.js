@@ -1,6 +1,6 @@
 /**
  * Registre des widgets pour le dashboard MAXLINK
- * Détection totalement automatique des widgets par scan direct du dossier
+ * Version universelle qui fonctionne à la fois en local avec Firefox et en hébergement sur serveur web
  */
 const WidgetRegistry = (function() {
     // Stockage de la configuration des widgets
@@ -14,8 +14,12 @@ const WidgetRegistry = (function() {
         return new Promise((resolve) => {
             console.log("Démarrage de la détection automatique des widgets...");
             
+            // Détecter si nous sommes dans un environnement serveur (http/https) ou local (file)
+            const isServerEnvironment = window.location.protocol === 'http:' || window.location.protocol === 'https:';
+            console.log(`Environnement détecté: ${isServerEnvironment ? 'Serveur Web' : 'Fichier Local'}`);
+            
             // On crée une liste des sous-dossiers du dossier widgets
-            scanWidgetsDirectory()
+            scanWidgetsDirectory(isServerEnvironment)
                 .then(subdirectories => {
                     if (subdirectories.length > 0) {
                         console.log(`Scan direct: ${subdirectories.length} sous-dossiers trouvés dans /widgets/`);
@@ -41,9 +45,11 @@ const WidgetRegistry = (function() {
     
     /**
      * Scanne le dossier widgets pour trouver tous les sous-dossiers
+     * Fonctionne à la fois en mode local (Firefox) et sur serveur web
+     * @param {boolean} isServerEnvironment - Indique si nous sommes dans un environnement serveur
      * @returns {Promise<Array>} Promise qui résout avec la liste des sous-dossiers
      */
-    function scanWidgetsDirectory() {
+    function scanWidgetsDirectory(isServerEnvironment) {
         return new Promise((resolve) => {
             // Effectuer une requête au dossier widgets
             fetch('widgets/')
@@ -62,83 +68,104 @@ const WidgetRegistry = (function() {
                         return;
                     }
                     
+                    // Enregistrer l'HTML brut dans la console pour diagnostic
+                    console.log("HTML brut des dossiers (extrait):", html.substring(0, 500));
+                    
                     // Liste pour stocker les sous-dossiers trouvés
                     const subdirectories = [];
                     
-                    // Méthode 1: Analyse Firefox-style
-                    if (html.includes('📁') || html.includes('folder.gif')) {
-                        console.log("Détection des dossiers au format Firefox");
+                    // Environnement local avec Firefox (comme celui testé)
+                    if (!isServerEnvironment && (html.includes('201:') && html.includes('DIRECTORY'))) {
+                        console.log("Format Firefox détecté: extraction basée sur le motif '201: nom DIRECTORY'");
                         
-                        // Différentes expressions régulières pour capturer les noms de dossiers
-                        // dans différents formats de page d'index de dossiers
-                        const patterns = [
-                            // Motif Firefox standard avec icônes
-                            /<tr[^>]*>[\s\S]*?<td[^>]*>[\s\S]*?<a[^>]*>(📁|<img[^>]*>)[^<]*<\/a>[\s\S]*?<a[^>]*>([^<]+)<\/a>/g,
-                            
-                            // Motif Firefox plus simple
-                            /<a[^>]*>[^<]*?📁[^<]*?<\/a>[^<]*?<a[^>]*>([^<]+)<\/a>/g,
-                            
-                            // Liens directs avec / à la fin
-                            /<a[^>]*href="([^"]+\/)"/g
-                        ];
+                        // Approche basée sur les lignes qui a bien fonctionné dans vos tests
+                        const lines = html.split('\n');
                         
-                        // Essayer chaque motif jusqu'à trouver des dossiers
-                        for (const pattern of patterns) {
-                            const regex = new RegExp(pattern);
-                            let match;
-                            const tempDirs = [];
+                        lines.forEach(line => {
+                            const trimmedLine = line.trim();
                             
-                            while ((match = regex.exec(html)) !== null) {
-                                // Le nom du dossier peut être dans différents groupes selon le pattern
-                                let folderName = match[1];
-                                
-                                // Si le motif a capturé l'icône dans le groupe 1, 
-                                // alors le nom du dossier est dans le groupe 2
-                                if (match[2]) {
-                                    folderName = match[2];
-                                }
-                                
-                                // Nettoyer le nom du dossier
-                                folderName = folderName.trim();
-                                
-                                // Si le nom contient un slash, obtenir juste le nom du dossier
-                                if (folderName.includes('/')) {
-                                    folderName = folderName.replace(/\/$/, '');
+                            if (trimmedLine.startsWith('201:') && trimmedLine.includes('DIRECTORY')) {
+                                // Utiliser l'expression régulière qui a bien fonctionné dans les tests
+                                const match = trimmedLine.match(/201:\s+(\S+)/);
+                                if (match && match[1]) {
+                                    const folderName = match[1];
                                     
-                                    // Si le chemin contient des sous-dossiers, prendre juste le dernier niveau
-                                    const parts = folderName.split('/');
-                                    folderName = parts[parts.length - 1];
-                                }
-                                
-                                // Ignorer les dossiers spéciaux
-                                if (folderName && folderName !== '..' && folderName !== '.' && 
-                                    !folderName.includes('vers un') && !folderName.includes('parent')) {
-                                    tempDirs.push(folderName);
+                                    // Ignorer les dossiers spéciaux
+                                    if (folderName && 
+                                        folderName !== '..' && 
+                                        folderName !== '.' && 
+                                        !folderName.includes('vers un') && 
+                                        !subdirectories.includes(folderName)) {
+                                        
+                                        subdirectories.push(folderName);
+                                        console.log(`Dossier détecté via le format Firefox: ${folderName}`);
+                                    }
                                 }
                             }
+                        });
+                    }
+                    // Environnement serveur web standard (listings de répertoires)
+                    else if (isServerEnvironment) {
+                        console.log("Format serveur web détecté: extraction basée sur les liens de dossiers");
+                        
+                        // Dans un environnement serveur, les dossiers sont généralement des liens se terminant par un slash
+                        const directoryLinksRegex = /<a[^>]*href="([^"]+\/)"[^>]*>/g;
+                        let linkMatch;
+                        
+                        while ((linkMatch = directoryLinksRegex.exec(html)) !== null) {
+                            const folderPath = linkMatch[1];
+                            const folderName = folderPath.replace(/\/$/, ''); // Enlever le slash final
                             
-                            if (tempDirs.length > 0) {
-                                subdirectories.push(...tempDirs);
-                                break; // Sortir de la boucle si des dossiers ont été trouvés
+                            if (folderName && 
+                                folderName !== '..' && 
+                                folderName !== '.' && 
+                                !folderName.includes('vers un') && 
+                                !subdirectories.includes(folderName)) {
+                                
+                                subdirectories.push(folderName);
+                                console.log(`Dossier détecté via les liens: ${folderName}`);
                             }
                         }
                     }
                     
-                    // Méthode 2: Vérification directe
-                    // Si aucun dossier n'a été trouvé avec l'analyse HTML,
-                    // on utilise une approche plus directe
+                    // Si aucune des méthodes précédentes n'a fonctionné, essayer une approche plus générique
                     if (subdirectories.length === 0) {
-                        console.log("Passage à la vérification directe des dossiers");
+                        console.log("Tentative d'extraction générique");
+                        
+                        // Essayer de trouver des liens vers des dossiers de manière plus générique
+                        const genericLinksRegex = /<a[^>]*>([^<]+)<\/a>/g;
+                        let genericMatch;
+                        
+                        while ((genericMatch = genericLinksRegex.exec(html)) !== null) {
+                            const text = genericMatch[1].trim();
+                            
+                            if (text && 
+                                text !== '..' && 
+                                text !== '.' && 
+                                !text.includes('Parent Directory') && 
+                                !subdirectories.includes(text)) {
+                                
+                                // Vérifier si c'est un dossier en regardant si un lien avec slash existe
+                                if (html.includes(`href="${text}/"`)) {
+                                    subdirectories.push(text);
+                                    console.log(`Dossier détecté via approche générique: ${text}`);
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Si aucune des méthodes précédentes n'a fonctionné, utiliser la liste de secours
+                    if (subdirectories.length === 0) {
+                        console.warn("Passage à la liste de secours des dossiers connus");
                         
                         // Liste des noms de widgets connus (basée sur la structure de votre projet)
-                        // Cette liste sert uniquement de filet de sécurité si l'analyse HTML échoue
                         const knownWidgets = [
                             'logo', 'mqttlogs509511', 'mqttlogs999', 'mqttstats',
-                            'rebootbutton', 'servermonitoring', 'uptime', 'wifistats'
+                            'rebootbutton', 'servermonitoring', 'uptime', 'wifistats', 'clock'
                         ];
                         
-                        // En mode sécurité, on ajoute ces widgets connus à la liste pour vérification
                         subdirectories.push(...knownWidgets);
+                        console.log(`Utilisation de la liste de secours: ${knownWidgets.join(', ')}`);
                     }
                     
                     console.log(`Sous-dossiers identifiés: ${subdirectories.join(', ')}`);
@@ -146,7 +173,15 @@ const WidgetRegistry = (function() {
                 })
                 .catch(error => {
                     console.error('Erreur lors du scan du dossier widgets:', error);
-                    resolve([]);
+                    
+                    // En cas d'erreur, utiliser la liste de secours
+                    const knownWidgets = [
+/*                         'logo', 'mqttlogs509511', 'mqttlogs999', 'mqttstats',
+                        'rebootbutton', 'servermonitoring', 'uptime', 'wifistats', 'clock' */
+                    ];
+                    
+                    console.log(`Utilisation de la liste de secours suite à une erreur: ${knownWidgets.join(', ')}`);
+                    resolve(knownWidgets);
                 });
         });
     }
@@ -163,23 +198,26 @@ const WidgetRegistry = (function() {
             // Pour chaque sous-dossier, vérifier s'il contient les fichiers d'un widget valide
             Promise.all(
                 subdirectories.map(dir => {
+                    // Si dir est déjà un objet avec un id, extraire l'id
+                    const dirId = typeof dir === 'object' ? dir.id : dir;
+                    
                     return Promise.all([
                         // Vérifier l'existence du fichier HTML
-                        fetch(`widgets/${dir}/${dir}.html`)
+                        fetch(`widgets/${dirId}/${dirId}.html`)
                             .then(response => response.ok)
                             .catch(() => false),
                         
                         // Vérifier l'existence du fichier JS
-                        fetch(`widgets/${dir}/${dir}.js`)
+                        fetch(`widgets/${dirId}/${dirId}.js`)
                             .then(response => response.ok)
                             .catch(() => false)
                     ]).then(([htmlExists, jsExists]) => {
                         // Un widget est considéré comme valide s'il a au moins son fichier HTML et JS
                         if (htmlExists && jsExists) {
-                            console.log(`Widget valide trouvé: ${dir}`);
-                            return { id: dir };
+                            console.log(`Widget valide trouvé: ${dirId}`);
+                            return { id: dirId };
                         }
-                        console.log(`Dossier ignoré (fichiers manquants): ${dir}`);
+                        console.warn(`Dossier ignoré (fichiers manquants): ${dirId}`);
                         return null;
                     });
                 })
