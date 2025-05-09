@@ -205,7 +205,68 @@ const WidgetManager = (function() {
             });
     }
     
-    // Reste des fonctions (loadCSS, loadJS, getWidget, getWidgets, reloadWidget) reste inchangé...
+    /**
+     * Charge une feuille de style CSS
+     * @param {string} url - URL de la feuille de style à charger
+     */
+    function loadCSS(url) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = url;
+        document.head.appendChild(link);
+    }
+
+    /**
+     * Charge un script JavaScript
+     * @param {string} url - URL du script à charger
+     * @param {Function} callback - Fonction de rappel à exécuter après le chargement
+     */
+    function loadJS(url, callback) {
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = url;
+        
+        // Ajouter l'écouteur d'événement pour le chargement
+        if (callback) {
+            script.onload = callback;
+        }
+        
+        document.body.appendChild(script);
+    }
+
+    /**
+     * Récupère un widget par son ID
+     * @param {string} id - ID du widget à récupérer
+     * @returns {Object|null} Le widget ou null s'il n'existe pas
+     */
+    function getWidget(id) {
+        return loadedWidgets[id] || null;
+    }
+
+    /**
+     * Récupère tous les widgets chargés
+     * @returns {Object} Les widgets chargés
+     */
+    function getWidgets() {
+        return loadedWidgets;
+    }
+
+    /**
+     * Recharge un widget
+     * @param {string} id - ID du widget à recharger
+     * @returns {boolean} True si le rechargement a réussi, false sinon
+     */
+    function reloadWidget(id) {
+        const widget = getWidget(id);
+        
+        if (widget && typeof widget.loadData === 'function') {
+            widget.loadData();
+            return true;
+        }
+        
+        return false;
+    }
     
     // API publique étendue
     return {
