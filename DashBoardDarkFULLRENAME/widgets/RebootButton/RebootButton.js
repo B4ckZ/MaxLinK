@@ -1,4 +1,4 @@
-const rebootbutton = (function() {
+window.rebootbutton = (function() {
     // Variables privées du widget
     let widgetElement;
     let rebootBtn;

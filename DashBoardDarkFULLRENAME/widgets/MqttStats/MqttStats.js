@@ -1,4 +1,4 @@
-const mqttstats = (function() {
+window.mqttstats = (function() {
     // Variables privées du widget
     let widgetElement;
     let mqttTopicsContainer;

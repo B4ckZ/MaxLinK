@@ -1,4 +1,4 @@
-const servermonitoring = (function() {
+window.servermonitoring = (function() {
     // Variables privées
     let widgetElement;
     

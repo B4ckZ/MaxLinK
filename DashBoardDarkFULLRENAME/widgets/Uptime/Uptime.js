@@ -1,4 +1,4 @@
-const uptime = (function() {
+window.uptime = (function() {
     // Variables privées
     let widgetElement;
     let uptimeElement;

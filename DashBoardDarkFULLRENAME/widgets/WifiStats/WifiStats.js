@@ -1,4 +1,4 @@
-const wifistats = (function() {
+window.wifistats = (function() {
     // Variables privées du widget
     let widgetElement;
     let clientsContainer;

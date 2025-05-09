@@ -1,4 +1,4 @@
-const mqttlogs509511 = (function() {
+window.mqttlogs509511 = (function() {
     // Variables privées du widget
     let widgetElement;
     let logsContainer;

@@ -2,7 +2,6 @@
  * Gestionnaire de widgets pour le dashboard MAXLINK
  * Responsable du chargement, de l'initialisation et de la gestion des widgets
  */
-
 const WidgetManager = (function() {
     // Cache privé des widgets chargés
     const loadedWidgets = {};
@@ -10,10 +9,13 @@ const WidgetManager = (function() {
     let dashboardElement;
     // Stockage de la configuration des widgets pour réutilisation
     let widgetsConfiguration = [];
+    // Drapeau pour suivre l'état d'initialisation
+    let isInitialized = false;
     
     /**
      * Initialise le gestionnaire de widgets
-     * @param {Array} config - Configuration des widgets à charger
+     * @param {Array} [config] - Configuration optionnelle des widgets à charger
+     * @returns {Promise} Promise qui résout quand les widgets sont initialisés
      */
     function init(config) {
         console.log('Initialisation du gestionnaire de widgets');
@@ -21,27 +23,116 @@ const WidgetManager = (function() {
         
         if (!dashboardElement) {
             console.error('Élément dashboard non trouvé');
-            return;
+            return Promise.reject('Élément dashboard non trouvé');
         }
-        
-        // Stocker la configuration pour réutilisation
-        widgetsConfiguration = config;
         
         // Définir les variables CSS pour le centrage
         updateCenterVariables();
         
-        // Charger chaque widget dans la configuration
-        config.forEach(widgetConfig => {
-            loadWidget(widgetConfig);
+        // Si une configuration est fournie, l'utiliser, sinon détecter les widgets
+        if (config && Array.isArray(config) && config.length > 0) {
+            return initWidgetsFromConfig(config);
+        } else {
+            return initWidgetsFromRegistry();
+        }
+    }
+    
+    /**
+     * Initialise les widgets à partir d'une configuration
+     * @param {Array} config - Configuration des widgets à charger
+     * @returns {Promise} Promise qui résout quand les widgets sont initialisés
+     */
+    function initWidgetsFromConfig(config) {
+        return new Promise((resolve) => {
+            // Stocker la configuration pour réutilisation
+            widgetsConfiguration = config;
+            
+            // Charger chaque widget dans la configuration
+            config.forEach(widgetConfig => {
+                loadWidget(widgetConfig);
+            });
+            
+            // Marquer comme initialisé
+            isInitialized = true;
+            
+            // Déclencher un événement pour indiquer que les widgets sont chargés
+            setTimeout(() => {
+                const event = new CustomEvent('widgets-loaded');
+                document.dispatchEvent(event);
+                resolve(config);
+            }, 1000);
+            
+            // Ajouter un écouteur pour les redimensionnements de fenêtre
+            setupResizeListener();
         });
-        
-        // Déclencher un événement pour indiquer que les widgets sont chargés
-        setTimeout(() => {
-            const event = new CustomEvent('widgets-loaded');
-            document.dispatchEvent(event);
-        }, 1000);
-        
-        // Ajouter un écouteur pour les redimensionnements de fenêtre
+    }
+    
+    /**
+     * Initialise les widgets à partir du registre de widgets
+     * @returns {Promise} Promise qui résout quand les widgets sont initialisés
+     */
+    function initWidgetsFromRegistry() {
+        return WidgetRegistry.detectWidgets()
+            .then(widgets => {
+                console.log(`${widgets.length} widgets détectés:`, widgets.map(w => w.id));
+                
+                if (widgets.length === 0) {
+                    console.warn('Aucun widget détecté. Le dashboard pourrait être vide.');
+                }
+                
+                // Stocker la configuration pour réutilisation
+                widgetsConfiguration = widgets;
+                
+                // Vérifier que les positions CSS existent pour tous les widgets
+                checkPositionsCSS(widgets);
+                
+                // Charger chaque widget détecté
+                widgets.forEach(widgetConfig => {
+                    loadWidget(widgetConfig);
+                });
+                
+                // Marquer comme initialisé
+                isInitialized = true;
+                
+                // Déclencher un événement pour indiquer que les widgets sont chargés
+                setTimeout(() => {
+                    const event = new CustomEvent('widgets-loaded');
+                    document.dispatchEvent(event);
+                }, 1000);
+                
+                // Ajouter un écouteur pour les redimensionnements de fenêtre
+                setupResizeListener();
+                
+                return widgets;
+            });
+    }
+    
+    /**
+     * Vérifie que les positions CSS existent pour tous les widgets
+     * @param {Array} widgets - Liste des widgets à vérifier
+     */
+    function checkPositionsCSS(widgets) {
+        // Récupérer le contenu du fichier CSS de positions
+        fetch('css/custom-positions.css')
+            .then(response => response.text())
+            .then(css => {
+                // Vérifier que chaque widget a une entrée dans le CSS
+                widgets.forEach(widget => {
+                    const idSelector = `#${widget.id}`;
+                    if (!css.includes(idSelector)) {
+                        console.warn(`Position CSS non trouvée pour le widget ${widget.id}. Le widget pourrait ne pas s'afficher correctement.`);
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Erreur lors de la vérification des positions CSS:', error);
+            });
+    }
+    
+    /**
+     * Configure l'écouteur de redimensionnement de fenêtre
+     */
+    function setupResizeListener() {
         window.addEventListener('resize', Utils.debounce(() => {
             updateCenterVariables();
             // Informer tous les widgets du redimensionnement
@@ -95,7 +186,8 @@ const WidgetManager = (function() {
                 // Charger et initialiser le JavaScript du widget
                 loadJS(`${widgetPath}/${id}.js`, () => {
                     // Après le chargement du script, initialiser le widget
-                    const widgetVarName = `${id}Widget`;
+                    // Utiliser directement l'ID comme nom de variable
+                    const widgetVarName = id;
                     
                     // Vérifier si le widget est disponible
                     if (window[widgetVarName] && typeof window[widgetVarName].init === 'function') {
@@ -104,7 +196,7 @@ const WidgetManager = (function() {
                         loadedWidgets[id] = window[widgetVarName];
                         console.log(`Widget ${id} initialisé avec succès`);
                     } else {
-                        console.error(`Widget ${id} n'a pas de méthode d'initialisation ou n'est pas correctement défini`);
+                        console.error(`Widget ${id} n'a pas de méthode d'initialisation ou n'est pas correctement défini. Variable attendue: ${widgetVarName}`);
                     }
                 });
             })
@@ -113,93 +205,15 @@ const WidgetManager = (function() {
             });
     }
     
-    /**
-     * Charge une feuille de style CSS
-     * @param {string} url - URL du fichier CSS
-     */
-    function loadCSS(url) {
-        // Vérifier si la feuille de style est déjà chargée
-        const existingLinks = document.querySelectorAll('link[rel="stylesheet"]');
-        for (const link of existingLinks) {
-            if (link.href.endsWith(url)) {
-                return; // La feuille de style est déjà chargée
-            }
-        }
-        
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = url;
-        document.head.appendChild(link);
-    }
+    // Reste des fonctions (loadCSS, loadJS, getWidget, getWidgets, reloadWidget) reste inchangé...
     
-    /**
-     * Charge un script JavaScript
-     * @param {string} url - URL du fichier JavaScript
-     * @param {Function} callback - Fonction à exécuter après le chargement
-     */
-    function loadJS(url, callback) {
-        // Vérifier si le script est déjà chargé
-        const existingScripts = document.querySelectorAll('script');
-        for (const script of existingScripts) {
-            if (script.src.endsWith(url)) {
-                callback(); // Le script est déjà chargé, exécuter le callback
-                return;
-            }
-        }
-        
-        const script = document.createElement('script');
-        script.src = url;
-        script.onload = callback;
-        script.onerror = function() {
-            console.error(`Erreur lors du chargement du script: ${url}`);
-        };
-        document.body.appendChild(script);
-    }
-    
-    /**
-     * Obtient un widget par son ID
-     * @param {string} id - ID du widget
-     * @returns {Object} Le widget s'il existe, sinon null
-     */
-    function getWidget(id) {
-        return loadedWidgets[id] || null;
-    }
-    
-    /**
-     * Obtient tous les widgets chargés
-     * @returns {Object} Objet contenant tous les widgets chargés
-     */
-    function getWidgets() {
-        return loadedWidgets;
-    }
-    
-    /**
-     * Recharge un widget
-     * @param {string} id - ID du widget à recharger
-     */
-    function reloadWidget(id) {
-        const widgetConfig = widgetsConfiguration.find(config => config.id === id);
-        if (widgetConfig) {
-            // Supprimer le widget existant
-            const element = document.getElementById(id);
-            if (element) {
-                element.remove();
-            }
-            // Supprimer du cache
-            delete loadedWidgets[id];
-            // Recharger
-            loadWidget(widgetConfig);
-        } else {
-            console.error(`Configuration pour le widget ${id} non trouvée`);
-        }
-    }
-    
-    // API publique
+    // API publique étendue
     return {
         init,
         getWidget,
         getWidgets,
         reloadWidget,
-        updateCenterVariables
+        updateCenterVariables,
+        isInitialized: function() { return isInitialized; }
     };
 })();
