@@ -48,7 +48,7 @@
 #clock {
     bottom: calc(var(--base-h) + 775px) !important;
     left: calc(var(--base-d) + 485px) !important;
-    width: 245px !important;
+    width: 200px !important;
     height: 135px !important;
     z-index: 0 !important;
 }
