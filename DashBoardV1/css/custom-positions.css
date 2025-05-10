@@ -56,7 +56,7 @@
 #uptime {
     bottom: calc(var(--base-h) + 690px) !important;
     left: calc(var(--base-d) + 40px) !important;
-    width: 235px !important;
+    width: 230px !important;
     height: 65px !important;
     z-index: 0 !important;
 }

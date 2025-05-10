@@ -379,8 +379,9 @@ window.mqttstats = (function() {
         if (uptimeElement) {
             const days = String(mqttData.uptime.days).padStart(2, '0');
             const hours = String(mqttData.uptime.hours).padStart(2, '0');
+			const minutes = String(mqttData.uptime.minutes).padStart(2, '0');
             const seconds = String(mqttData.uptime.seconds).padStart(2, '0');
-            uptimeElement.textContent = `${days}j ${hours}h ${seconds}s`;
+            uptimeElement.textContent = `${days}j ${hours}h ${minutes}m ${seconds}s`;
         }
         
         // Mettre à jour la latence
