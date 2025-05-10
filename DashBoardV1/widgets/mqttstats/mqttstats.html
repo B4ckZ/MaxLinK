@@ -3,21 +3,32 @@
     <span>MQTT Stats & Topics</span>
 </div>
 
-<div class="mqtt-status">
-    <div class="mqtt-info-container">
-        <div>15.234 reçus | 8.712 envoyés</div>
-        <div>Uptime : 5j 2h 32m | Latence</div>
+<!-- Stats Boxes -->
+<div class="mqtt-stats-grid">
+    <div class="mqtt-stats-box">
+        <div class="mqtt-stats-label">Messages Reçus ↓</div>
+        <div class="mqtt-stats-value" id="messages-received">15,234</div>
     </div>
-    <div class="status-indicator status-ok"></div>
+    <div class="mqtt-stats-box">
+        <div class="mqtt-stats-label">Messages Envoyés ↑</div>
+        <div class="mqtt-stats-value" id="messages-sent">8,712</div>
+    </div>
 </div>
 
-<div class="mqtt-topics">
-    <div class="mqtt-topic">weri/device/+/temp</div>
-    <div class="mqtt-topic">weri/device/+/humidity</div>
-    <div class="mqtt-topic">weri/device/+/status</div>
-    <div class="mqtt-topic">weri/system/stats</div>
-    <div class="mqtt-topic">weri/system/updates</div>
-    <div class="mqtt-topic">weri/device/+/battery</div>
-    <div class="mqtt-topic">weri/device/+/connection</div>
-    <div class="mqtt-topic">weri/network/pid/reload</div>
+<!-- Uptime & Latency -->
+<div class="mqtt-info-box">
+    <div class="mqtt-info-item">
+        <div class="mqtt-stats-label">Uptime</div>
+        <div class="mqtt-info-value" id="mqtt-uptime">5j 2h 32m</div>
+    </div>
+    <div class="mqtt-info-item">
+        <div class="mqtt-stats-label">Latence</div>
+        <div class="mqtt-info-value" id="mqtt-latency">23ms</div>
+    </div>
+    <div class="status-indicator" id="mqtt-status-indicator"></div>
+</div>
+
+<!-- Topics List -->
+<div class="mqtt-topics" id="mqtt-topics-container">
+    <!-- Topics will be added dynamically by JavaScript -->
 </div>

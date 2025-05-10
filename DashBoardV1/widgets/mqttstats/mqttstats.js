@@ -2,6 +2,12 @@ window.mqttstats = (function() {
     // Variables privées du widget
     let widgetElement;
     let mqttTopicsContainer;
+    let messagesReceivedElement;
+    let messagesSentElement;
+    let uptimeElement;
+    let latencyElement;
+    let statusIndicatorElement;
+    
     let config = {
         // Configuration par défaut du widget
         updateInterval: 5000, // Intervalle de mise à jour en millisecondes
@@ -16,6 +22,7 @@ window.mqttstats = (function() {
             hours: 2,
             minutes: 32
         },
+        latency: 23, // en ms
         status: 'ok', // 'ok' ou 'error'
         topics: [
             'weri/device/+/temp',
@@ -39,12 +46,19 @@ window.mqttstats = (function() {
      */
     function init(element, customConfig = {}) {
         widgetElement = element;
-        mqttTopicsContainer = widgetElement.querySelector('.mqtt-topics');
+        
+        // Récupérer les éléments DOM nécessaires
+        mqttTopicsContainer = widgetElement.querySelector('#mqtt-topics-container');
+        messagesReceivedElement = widgetElement.querySelector('#messages-received');
+        messagesSentElement = widgetElement.querySelector('#messages-sent');
+        uptimeElement = widgetElement.querySelector('#mqtt-uptime');
+        latencyElement = widgetElement.querySelector('#mqtt-latency');
+        statusIndicatorElement = widgetElement.querySelector('#mqtt-status-indicator');
         
         // Fusionner la configuration personnalisée avec les valeurs par défaut
         config = {...config, ...customConfig};
         
-        console.log('Widget MQTT Server initialisé');
+        console.log('Widget MQTT Stats initialisé');
         
         // Premier chargement des données et démarrage de la mise à jour périodique
         loadData();
@@ -103,6 +117,9 @@ window.mqttstats = (function() {
             }
         }
         
+        // Simuler un changement de latence
+        mqttData.latency = Math.floor(15 + Math.random() * 20);
+        
         // Simuler un changement aléatoire de statut (1% de chance d'erreur)
         mqttData.status = Math.random() < 0.01 ? 'error' : 'ok';
         
@@ -128,20 +145,28 @@ window.mqttstats = (function() {
      * Met à jour l'interface utilisateur avec les nouvelles données
      */
     function updateUI() {
-        // Mettre à jour les informations MQTT
-        const mqttInfoContainer = widgetElement.querySelector('.mqtt-info-container');
-        const statusIndicator = widgetElement.querySelector('.status-indicator');
-        
-        if (mqttInfoContainer) {
-            const infoElements = mqttInfoContainer.querySelectorAll('div');
-            if (infoElements.length >= 2) {
-                infoElements[0].textContent = `${mqttData.received.toLocaleString()} reçus | ${mqttData.sent.toLocaleString()} envoyés`;
-                infoElements[1].textContent = `Uptime : ${mqttData.uptime.days}j ${mqttData.uptime.hours}h ${mqttData.uptime.minutes}m | Latence`;
-            }
+        // Mettre à jour les compteurs de messages
+        if (messagesReceivedElement) {
+            messagesReceivedElement.textContent = mqttData.received.toLocaleString();
         }
         
-        if (statusIndicator) {
-            statusIndicator.className = `status-indicator status-${mqttData.status}`;
+        if (messagesSentElement) {
+            messagesSentElement.textContent = mqttData.sent.toLocaleString();
+        }
+        
+        // Mettre à jour l'uptime
+        if (uptimeElement) {
+            uptimeElement.textContent = `${mqttData.uptime.days}j ${mqttData.uptime.hours}h ${mqttData.uptime.minutes}m`;
+        }
+        
+        // Mettre à jour la latence
+        if (latencyElement) {
+            latencyElement.textContent = `${mqttData.latency}ms`;
+        }
+        
+        // Mettre à jour l'indicateur de statut
+        if (statusIndicatorElement) {
+            statusIndicatorElement.className = `status-indicator status-${mqttData.status}`;
         }
         
         // Mettre à jour la liste des topics
@@ -164,14 +189,15 @@ window.mqttstats = (function() {
     function adjustTopicsContainerHeight() {
         if (mqttTopicsContainer) {
             const titleHeight = widgetElement.querySelector('.widget-title').offsetHeight;
-            const statusHeight = widgetElement.querySelector('.mqtt-status').offsetHeight;
+            const statsHeight = widgetElement.querySelector('.mqtt-stats-grid').offsetHeight;
+            const infoHeight = widgetElement.querySelector('.mqtt-info-box').offsetHeight;
             const containerHeight = widgetElement.offsetHeight;
             const padding = parseInt(getComputedStyle(widgetElement).paddingTop) * 2;
-            const margins = parseInt(getComputedStyle(widgetElement.querySelector('.mqtt-status')).marginBottom) || 0;
+            const margins = 20; // Marge estimée entre les éléments
             
-            const availableHeight = containerHeight - titleHeight - statusHeight - padding - margins;
+            const availableHeight = containerHeight - titleHeight - statsHeight - infoHeight - padding - margins;
             
-            mqttTopicsContainer.style.height = `${availableHeight}px`;
+            mqttTopicsContainer.style.maxHeight = `${availableHeight}px`;
         }
     }
     

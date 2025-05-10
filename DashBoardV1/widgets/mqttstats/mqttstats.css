@@ -1,30 +1,59 @@
 /**
- * Styles pour le widget mqtt-server
+ * Styles pour le widget mqtt-stats
  * Utilisation directe des variables Nord
  */
 
-/* MQTT Status */
-.mqtt-status {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    margin-bottom: 12px;
-    border-radius: calc(var(--border-radius) - 4px);
+/* Grid pour les statistiques */
+.mqtt-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+/* Box pour chaque statistique */
+.mqtt-stats-box {
     background-color: var(--nord0);
+    border-radius: calc(var(--border-radius) - 4px);
+    padding: 10px;
     box-shadow: 
         inset 2px 2px 4px var(--shadow-color),
         inset -2px -2px 4px var(--highlight-color);
 }
 
-.mqtt-info-container {
+.mqtt-stats-label {
+    font-size: 14px;
+    color: var(--nord4);
+    margin-bottom: 4px;
+}
+
+.mqtt-stats-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--nord8);
+}
+
+/* Info box pour uptime et latence */
+.mqtt-info-box {
+    background-color: var(--nord0);
+    border-radius: calc(var(--border-radius) - 4px);
+    padding: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-color),
+        inset -2px -2px 4px var(--highlight-color);
+}
+
+.mqtt-info-item {
     flex: 1;
 }
 
-.mqtt-info-container > div {
-    font-size: 14px;
-    color: var(--nord5);
-    margin-bottom: 4px;
+.mqtt-info-value {
+    color: var(--nord8);
+    font-weight: 500;
 }
 
 /* Status indicators */
@@ -49,12 +78,12 @@
 .mqtt-topics {
     overflow-y: auto;
     flex: 1;
-    padding-right: 4px;
+    max-height: 210px;
 }
 
 .mqtt-topic {
-    padding: 10px;
-    margin-bottom: 10px;
+    padding: 6px 10px;  /* Réduit le padding vertical de 10px à 6px */
+    margin-bottom: 8px; /* Réduit l'espace entre les topics de 8px à 4px */
     border-radius: calc(var(--border-radius) - 4px);
     background-color: var(--nord2);
     font-size: 14px;
