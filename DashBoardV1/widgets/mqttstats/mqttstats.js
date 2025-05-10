@@ -1,3 +1,7 @@
+/**
+ * Widget MQTT Stats pour MaxLink
+ * Version optimisée avec suppression des imports redondants et utilisation des utilitaires communs
+ */
 window.mqttstats = (function() {
     // Variables privées du widget
     let widgetElement;
@@ -7,6 +11,9 @@ window.mqttstats = (function() {
     let uptimeElement;
     let latencyElement;
     let statusIndicatorElement;
+    
+    // Stockage des timers pour faciliter le nettoyage
+    let timers = [];
     
     // Configuration du widget
     let config = {
@@ -40,10 +47,7 @@ window.mqttstats = (function() {
         connected: false                    // État de connexion
     };
     
-    // Variables pour les timers et le suivi du temps
-    let activityCheckTimer;
-    let simulationTimer;
-    let uiUpdateTimer;
+    // Suivi du temps pour l'uptime
     let lastUptimeUpdate;
     let mqttClient = null;  // Pour stocker la référence au client MQTT
     
@@ -69,9 +73,6 @@ window.mqttstats = (function() {
         console.log('Widget MQTT Stats initialisé');
         console.log(config.simulationMode ? 'Mode simulation activé' : 'Mode réel activé');
         
-        // Ajouter la police Roboto Mono pour la stabilité des chiffres
-        addMonospaceFont();
-        
         // Ajouter les classes pour la stabilisation des valeurs numériques
         applyStabilizationClasses();
         
@@ -91,33 +92,6 @@ window.mqttstats = (function() {
         
         // Ajuster la hauteur du conteneur de topics
         adjustTopicsContainerHeight();
-    }
-    
-    /**
-     * Ajoute dynamiquement la police Roboto Mono depuis Google Fonts
-     * Cette police monospace assure que tous les chiffres ont la même largeur
-     */
-    function addMonospaceFont() {
-        if (!document.getElementById('roboto-mono-font')) {
-            // Préconnexion pour accélérer le chargement
-            const preconnectGoogle = document.createElement('link');
-            preconnectGoogle.rel = 'preconnect';
-            preconnectGoogle.href = 'https://fonts.googleapis.com';
-            document.head.appendChild(preconnectGoogle);
-            
-            const preconnectGstatic = document.createElement('link');
-            preconnectGstatic.rel = 'preconnect';
-            preconnectGstatic.href = 'https://fonts.gstatic.com';
-            preconnectGstatic.crossOrigin = 'anonymous';
-            document.head.appendChild(preconnectGstatic);
-            
-            // Chargement de la police
-            const fontLink = document.createElement('link');
-            fontLink.id = 'roboto-mono-font';
-            fontLink.rel = 'stylesheet';
-            fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;600&display=swap';
-            document.head.appendChild(fontLink);
-        }
     }
     
     /**
@@ -237,14 +211,18 @@ window.mqttstats = (function() {
      */
     function startActivityCheck() {
         // Arrêter l'ancien timer s'il existe
+        let activityCheckTimer = timers.find(t => t.name === 'activityCheck');
         if (activityCheckTimer) {
-            clearInterval(activityCheckTimer);
+            clearInterval(activityCheckTimer.id);
+            timers = timers.filter(t => t.name !== 'activityCheck');
         }
         
-        // Démarrer un nouveau timer
-        activityCheckTimer = setInterval(() => {
+        // Démarrer un nouveau timer et le stocker dans la liste des timers
+        const timerId = setInterval(() => {
             checkMQTTActivity();
         }, 1000); // Vérifier toutes les secondes
+        
+        timers.push({ name: 'activityCheck', id: timerId });
     }
     
     /**
@@ -269,14 +247,18 @@ window.mqttstats = (function() {
      */
     function startSimulation() {
         // Arrêter l'ancien timer s'il existe
+        let simulationTimer = timers.find(t => t.name === 'simulation');
         if (simulationTimer) {
-            clearInterval(simulationTimer);
+            clearInterval(simulationTimer.id);
+            timers = timers.filter(t => t.name !== 'simulation');
         }
         
-        // Démarrer un nouveau timer
-        simulationTimer = setInterval(() => {
+        // Démarrer un nouveau timer et le stocker
+        const timerId = setInterval(() => {
             runSimulation();
         }, 1000); // Simuler toutes les secondes
+        
+        timers.push({ name: 'simulation', id: timerId });
     }
     
     /**
@@ -349,17 +331,21 @@ window.mqttstats = (function() {
      */
     function startUIUpdates() {
         // Arrêter l'ancien timer s'il existe
+        let uiUpdateTimer = timers.find(t => t.name === 'uiUpdate');
         if (uiUpdateTimer) {
-            clearInterval(uiUpdateTimer);
+            clearInterval(uiUpdateTimer.id);
+            timers = timers.filter(t => t.name !== 'uiUpdate');
         }
         
         // Mettre à jour l'UI immédiatement
         updateUI();
         
-        // Démarrer un nouveau timer
-        uiUpdateTimer = setInterval(() => {
+        // Démarrer un nouveau timer et le stocker
+        const timerId = setInterval(() => {
             updateUI();
         }, config.updateInterval);
+        
+        timers.push({ name: 'uiUpdate', id: timerId });
     }
     
     /**
@@ -375,13 +361,11 @@ window.mqttstats = (function() {
             messagesSentElement.textContent = mqttData.sent.toLocaleString();
         }
         
-        // Mettre à jour l'uptime avec le format "00j 00h 00s"
+        // Mettre à jour l'uptime avec le format "00j 00h 00m 00s"
         if (uptimeElement) {
-            const days = String(mqttData.uptime.days).padStart(2, '0');
-            const hours = String(mqttData.uptime.hours).padStart(2, '0');
-			const minutes = String(mqttData.uptime.minutes).padStart(2, '0');
-            const seconds = String(mqttData.uptime.seconds).padStart(2, '0');
-            uptimeElement.textContent = `${days}j ${hours}h ${minutes}m ${seconds}s`;
+            // Utilisation d'une fonction d'affichage formatée pour l'uptime
+            const formattedUptime = formatMQTTUptime();
+            uptimeElement.textContent = formattedUptime;
         }
         
         // Mettre à jour la latence
@@ -406,6 +390,15 @@ window.mqttstats = (function() {
                 mqttTopicsContainer.appendChild(topicElement);
             });
         }
+    }
+    
+    /**
+     * Formate l'uptime MQTT pour l'affichage
+     * @returns {string} Chaîne formatée pour l'affichage
+     */
+    function formatMQTTUptime() {
+        const { days, hours, minutes, seconds } = mqttData.uptime;
+        return `${String(days).padStart(2, '0')}j ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
     }
     
     /**
@@ -443,12 +436,6 @@ window.mqttstats = (function() {
         
         // Si le mode simulation a changé
         if (oldConfig.simulationMode !== config.simulationMode) {
-            // Arrêter les timers existants
-            if (simulationTimer) {
-                clearInterval(simulationTimer);
-                simulationTimer = null;
-            }
-            
             // Réinitialiser la connexion MQTT
             initMQTTConnection();
             
@@ -492,21 +479,11 @@ window.mqttstats = (function() {
      * Nettoyage lors de la destruction du widget
      */
     function destroy() {
-        // Arrêter tous les timers
-        if (activityCheckTimer) {
-            clearInterval(activityCheckTimer);
-            activityCheckTimer = null;
-        }
-        
-        if (simulationTimer) {
-            clearInterval(simulationTimer);
-            simulationTimer = null;
-        }
-        
-        if (uiUpdateTimer) {
-            clearInterval(uiUpdateTimer);
-            uiUpdateTimer = null;
-        }
+        // Nettoyer tous les timers en une seule fois
+        timers.forEach(timer => {
+            if (timer.id) clearInterval(timer.id);
+        });
+        timers = [];
         
         // Fermer la connexion MQTT si elle existe
         if (mqttClient) {

@@ -1,6 +1,6 @@
 /**
  * Widget Horloge amélioré pour MaxLink
- * Version modifiée pour respecter les styles CSS et éviter les conflits
+ * Version optimisée avec suppression des imports redondants et utilisation des utilitaires communs
  */
 window.clock = (function() {
     // Variables privées du widget
@@ -20,9 +20,6 @@ window.clock = (function() {
         
         console.log('Widget Horloge initialisé');
         
-        // Ajouter la police Roboto Mono pour la stabilité des chiffres
-        addMonospaceFont();
-        
         // Ajouter UNIQUEMENT les classes CSS au lieu de styles inline
         if (clockTimeElement) {
             // Nous ajoutons une classe au lieu de styles inline
@@ -32,32 +29,6 @@ window.clock = (function() {
         // Mettre à jour l'horloge immédiatement puis toutes les secondes
         updateClock();
         updateInterval = setInterval(updateClock, 1000);
-    }
-    
-    /**
-     * Ajoute dynamiquement la police Roboto Mono depuis Google Fonts
-     */
-    function addMonospaceFont() {
-        if (!document.getElementById('roboto-mono-font')) {
-            // Préconnexion pour accélérer le chargement
-            const preconnectGoogle = document.createElement('link');
-            preconnectGoogle.rel = 'preconnect';
-            preconnectGoogle.href = 'https://fonts.googleapis.com';
-            document.head.appendChild(preconnectGoogle);
-            
-            const preconnectGstatic = document.createElement('link');
-            preconnectGstatic.rel = 'preconnect';
-            preconnectGstatic.href = 'https://fonts.gstatic.com';
-            preconnectGstatic.crossOrigin = 'anonymous';
-            document.head.appendChild(preconnectGstatic);
-            
-            // Chargement de la police
-            const fontLink = document.createElement('link');
-            fontLink.id = 'roboto-mono-font';
-            fontLink.rel = 'stylesheet';
-            fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;600&display=swap';
-            document.head.appendChild(fontLink);
-        }
     }
     
     /**
@@ -99,11 +70,8 @@ window.clock = (function() {
      * Nettoyage lors de la destruction du widget
      */
     function destroy() {
-        // Arrêter l'intervalle de mise à jour
-        if (updateInterval) {
-            clearInterval(updateInterval);
-            updateInterval = null;
-        }
+        // Utilisation de la fonction utilitaire pour nettoyer les timers
+        updateInterval = Utils.clearTimers(updateInterval);
     }
     
     // API publique du widget
