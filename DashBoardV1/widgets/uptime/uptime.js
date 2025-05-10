@@ -1,3 +1,7 @@
+/**
+ * Widget Uptime pour MaxLink
+ * Version améliorée avec préparation pour MQTT
+ */
 window.uptime = (function() {
     // Variables privées
     let widgetElement;
@@ -6,7 +10,8 @@ window.uptime = (function() {
     
     // Configuration
     const config = {
-        refreshInterval: 1000 // Mise à jour toutes les secondes
+        refreshInterval: 1000, // Mise à jour toutes les secondes
+        mqttTopic: 'weri/system/uptime' // Topic MQTT pour l'uptime du système
     };
     
     // Variable pour le temps total en secondes
@@ -15,10 +20,17 @@ window.uptime = (function() {
     /**
      * Initialise le widget
      * @param {HTMLElement} element - L'élément DOM du widget
+     * @param {Object} customConfig - Configuration personnalisée (optionnelle)
      */
-    function init(element) {
+    function init(element, customConfig = {}) {
+        // Nettoyage préventif
+        destroy();
+        
         widgetElement = element;
         uptimeElement = widgetElement.querySelector('[data-metric="uptime"]');
+        
+        // Fusion des configurations
+        Object.assign(config, customConfig);
         
         console.log('Widget Uptime initialisé');
         
@@ -31,8 +43,58 @@ window.uptime = (function() {
         totalSeconds = 0;
         updateUptimeDisplay();
         
-        // Démarrer l'intervalle de mise à jour
+        // Préparer l'intégration MQTT
+        setupMQTTListener();
+        
+        // Démarrer l'intervalle de mise à jour locale
         startUpdateInterval();
+    }
+    
+    /**
+     * Configure l'écouteur MQTT pour recevoir l'uptime du système
+     */
+    function setupMQTTListener() {
+        // À implémenter quand MQTT sera disponible
+        console.log(`Préparation de l'écouteur MQTT sur le topic: ${config.mqttTopic}`);
+        
+        /* Exemple de code à implémenter:
+        if (window.mqtt) {
+            window.mqtt.subscribe(config.mqttTopic);
+            
+            window.mqtt.on('message', (topic, message) => {
+                if (topic === config.mqttTopic) {
+                    handleUptimeMessage(message);
+                }
+            });
+        }
+        */
+    }
+    
+    /**
+     * Traite un message MQTT d'uptime reçu
+     * @param {Buffer|string} message - Message MQTT contenant l'uptime
+     */
+    function handleUptimeMessage(message) {
+        try {
+            const uptimeData = JSON.parse(message.toString());
+            
+            // Le message peut contenir soit un nombre total de secondes
+            if (typeof uptimeData.seconds === 'number') {
+                totalSeconds = uptimeData.seconds;
+                updateUptimeDisplay();
+            } 
+            // Soit un objet avec les composants (jours, heures, minutes, secondes)
+            else if (uptimeData.days !== undefined) {
+                totalSeconds = 
+                    (uptimeData.days || 0) * 86400 + 
+                    (uptimeData.hours || 0) * 3600 + 
+                    (uptimeData.minutes || 0) * 60 + 
+                    (uptimeData.seconds || 0);
+                updateUptimeDisplay();
+            }
+        } catch (error) {
+            console.error('Erreur lors du traitement du message d\'uptime:', error);
+        }
     }
     
     /**
@@ -41,10 +103,10 @@ window.uptime = (function() {
     function startUpdateInterval() {
         if (updateTimer) {
             clearInterval(updateTimer);
+            updateTimer = null;
         }
         
         updateTimer = setInterval(() => {
-            // Incrémente simplement le compteur de secondes
             totalSeconds++;
             updateUptimeDisplay();
         }, config.refreshInterval);
@@ -60,7 +122,6 @@ window.uptime = (function() {
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const seconds = totalSeconds % 60;
         
-        // Format harmonisé incluant les minutes: "00j 00h 00m 00s"
         return `${String(days).padStart(2, '0')}j ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
     }
     
@@ -70,6 +131,17 @@ window.uptime = (function() {
     function updateUptimeDisplay() {
         if (uptimeElement) {
             uptimeElement.textContent = formatUptime();
+        }
+    }
+    
+    /**
+     * Met à jour directement la valeur d'uptime
+     * @param {number} seconds - Nombre total de secondes d'uptime
+     */
+    function setUptime(seconds) {
+        if (typeof seconds === 'number' && seconds >= 0) {
+            totalSeconds = seconds;
+            updateUptimeDisplay();
         }
     }
     
@@ -90,9 +162,11 @@ window.uptime = (function() {
         }
     }
     
-    // API publique simplifiée
+    // API publique du widget
     return {
         init,
+        setUptime,
+        handleUptimeMessage,
         onResize,
         destroy
     };

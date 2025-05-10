@@ -1,14 +1,11 @@
 window.logo = (function() {
-    function init(element) {
-        console.log('Widget Logo initialisé');
+    function init() {
+        // Aucune opération nécessaire pour le logo
     }
     
-    function onResize() {
-        // Fonction vide - requise par l'API des widgets
-    }
-    
+    // API minimale requise
     return {
         init,
-        onResize
+        onResize: function() {}
     };
 })();

@@ -1,7 +1,3 @@
-/**
- * Widget Horloge amélioré pour MaxLink
- * Version optimisée avec suppression des imports redondants et utilisation des utilitaires communs
- */
 window.clock = (function() {
     // Variables privées du widget
     let widgetElement;
@@ -20,9 +16,14 @@ window.clock = (function() {
         
         console.log('Widget Horloge initialisé');
         
-        // Ajouter UNIQUEMENT les classes CSS au lieu de styles inline
+        // Nettoyer l'intervalle existant si nécessaire
+        if (updateInterval) {
+            clearInterval(updateInterval);
+            updateInterval = null;
+        }
+        
+        // Ajouter la classe pour la stabilisation
         if (clockTimeElement) {
-            // Nous ajoutons une classe au lieu de styles inline
             clockTimeElement.classList.add('clock-time-stable');
         }
         
@@ -49,7 +50,7 @@ window.clock = (function() {
         const year = now.getFullYear();
         const dateString = `${day}/${month}/${year}`;
         
-        // Mettre à jour l'affichage
+        // Mettre à jour l'affichage avec vérification
         if (clockTimeElement) {
             clockTimeElement.textContent = timeString;
         }
@@ -57,6 +58,16 @@ window.clock = (function() {
         if (clockDateElement) {
             clockDateElement.textContent = dateString;
         }
+    }
+    
+    /**
+     * Prépare le widget pour la communication MQTT dans le futur
+     * À implémenter quand le serveur sera disponible
+     */
+    function prepareForMQTT() {
+        // Ici, vous ajouterez le code pour souscrire aux topics MQTT
+        // et gérer les messages quand le serveur sera disponible
+        console.log('Préparation pour MQTT - non implémentée');
     }
     
     /**
@@ -70,14 +81,17 @@ window.clock = (function() {
      * Nettoyage lors de la destruction du widget
      */
     function destroy() {
-        // Utilisation de la fonction utilitaire pour nettoyer les timers
-        updateInterval = Utils.clearTimers(updateInterval);
+        if (updateInterval) {
+            clearInterval(updateInterval);
+            updateInterval = null;
+        }
     }
     
-    // API publique du widget
+    // API publique du widget - inclut des méthodes pour futur MQTT
     return {
         init,
         updateClock,
+        prepareForMQTT, // Placeholder pour l'intégration future
         onResize,
         destroy
     };
