@@ -102,8 +102,7 @@ body {
     scrollbar-color: var(--scrollbar-thumb-color) transparent;
 }
 
-/* Sélecteurs globaux pour tous les éléments avec scrollbars */
-[class*="container"],
+/* Sélecteurs pour les éléments avec scrollbars - CORRIGÉ pour exclure .widget-container */
 [class*="content"],
 .scrollable-content,
 .mqtt-topics,
@@ -121,4 +120,10 @@ div[style*="overflow-y: auto"] {
     
     /* Assurer le calcul correct des dimensions */
     box-sizing: border-box;
+}
+
+/* Assurer que les widget-container conservent leurs coins arrondis */
+.widget-container {
+    border-radius: var(--border-radius) !important;
+    overflow: hidden !important;
 }
