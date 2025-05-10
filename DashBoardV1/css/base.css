@@ -19,22 +19,6 @@
     --centre-d: 50vw; /* D = droite (horizontale) */
 }
 
-/* Dans DashBoardDark/css/base.css */
-.widget-material-icon {
-    font-size: 24px;
-    color: var(--nord9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: color 0.3s ease;
-}
-
-/* Pour les widgets spécifiques où vous voulez des couleurs différentes */
-.uptime-icon {
-    color: var(--nord8);
-    margin-right: 10px;
-}
-
 /* Styles globaux */
 * {
     margin: 0;
