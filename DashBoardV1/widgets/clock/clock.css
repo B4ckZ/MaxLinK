@@ -1,0 +1,32 @@
+/**
+ * Styles pour le widget Horloge
+ */
+
+.clock-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: calc(100% - 40px);
+    padding: 10px;
+    background-color: var(--nord0);
+    border-radius: calc(var(--border-radius) - 4px);
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-color),
+        inset -2px -2px 4px var(--highlight-color);
+}
+
+.clock-time {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--nord8);
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(136, 192, 208, 0.4);
+}
+
+.clock-date {
+    font-size: 16px;
+    color: var(--nord4);
+    letter-spacing: 1px;
+}
