@@ -69,6 +69,12 @@ window.mqttstats = (function() {
         console.log('Widget MQTT Stats initialisé');
         console.log(config.simulationMode ? 'Mode simulation activé' : 'Mode réel activé');
         
+        // Ajouter la police Roboto Mono pour la stabilité des chiffres
+        addMonospaceFont();
+        
+        // Ajouter les classes pour la stabilisation des valeurs numériques
+        applyStabilizationClasses();
+        
         // Initialiser la connexion MQTT (réelle ou simulée)
         initMQTTConnection();
         
@@ -85,6 +91,56 @@ window.mqttstats = (function() {
         
         // Ajuster la hauteur du conteneur de topics
         adjustTopicsContainerHeight();
+    }
+    
+    /**
+     * Ajoute dynamiquement la police Roboto Mono depuis Google Fonts
+     * Cette police monospace assure que tous les chiffres ont la même largeur
+     */
+    function addMonospaceFont() {
+        if (!document.getElementById('roboto-mono-font')) {
+            // Préconnexion pour accélérer le chargement
+            const preconnectGoogle = document.createElement('link');
+            preconnectGoogle.rel = 'preconnect';
+            preconnectGoogle.href = 'https://fonts.googleapis.com';
+            document.head.appendChild(preconnectGoogle);
+            
+            const preconnectGstatic = document.createElement('link');
+            preconnectGstatic.rel = 'preconnect';
+            preconnectGstatic.href = 'https://fonts.gstatic.com';
+            preconnectGstatic.crossOrigin = 'anonymous';
+            document.head.appendChild(preconnectGstatic);
+            
+            // Chargement de la police
+            const fontLink = document.createElement('link');
+            fontLink.id = 'roboto-mono-font';
+            fontLink.rel = 'stylesheet';
+            fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;600&display=swap';
+            document.head.appendChild(fontLink);
+        }
+    }
+    
+    /**
+     * Applique les classes CSS pour stabiliser les valeurs numériques
+     */
+    function applyStabilizationClasses() {
+        // Appliquer aux compteurs de messages
+        if (messagesReceivedElement) {
+            messagesReceivedElement.classList.add('mqtt-stats-value-stable');
+        }
+        
+        if (messagesSentElement) {
+            messagesSentElement.classList.add('mqtt-stats-value-stable');
+        }
+        
+        // Appliquer aux valeurs d'uptime et latence
+        if (uptimeElement) {
+            uptimeElement.classList.add('mqtt-info-value-stable');
+        }
+        
+        if (latencyElement) {
+            latencyElement.classList.add('mqtt-info-value-stable');
+        }
     }
     
     /**
