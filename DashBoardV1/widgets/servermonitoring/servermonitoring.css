@@ -45,39 +45,23 @@
     transition: width 0.4s ease;
 }
 
-/* CPU Cores - Dégradés */
-[data-metric="cpu-core1"] .progress-bar {
+/* CPU Cores - style unifié pour tous les cœurs */
+[data-metric^="cpu-core"] .progress-bar {
+    background: linear-gradient(to right, var(--nord14), var(--nord10));
+}
+
+/* Température - Dégradé vert à rouge pour visualiser facilement les températures critiques */
+[data-metric^="temp-"] .progress-bar {
+    background: linear-gradient(to right, var(--nord14), var(--nord13), var(--nord12), var(--nord11));
+}
+
+/* Fréquence - Dégradé de bleus pour les fréquences */
+[data-metric^="freq-"] .progress-bar {
     background: linear-gradient(to right, var(--nord10), var(--nord9), var(--nord8));
 }
 
-[data-metric="cpu-core2"] .progress-bar {
-    background: linear-gradient(to right, var(--nord10), var(--nord9), var(--nord8));
-}
-
-[data-metric="cpu-core3"] .progress-bar {
-    background: linear-gradient(to right, var(--nord10), var(--nord9), var(--nord8));
-}
-
-[data-metric="cpu-core4"] .progress-bar {
-    background: linear-gradient(to right, var(--nord10), var(--nord9), var(--nord8));
-}
-
-/* Température - Dégradé */
-[data-metric="temp-cpu"] .progress-bar,
-[data-metric="temp-gpu"] .progress-bar {
-    background: linear-gradient(to right, var(--nord10), var(--nord10), var(--nord9), var(--nord12), var(--nord12));
-}
-
-/* Fréquence - Dégradé */
-[data-metric="freq-cpu"] .progress-bar,
-[data-metric="freq-gpu"] .progress-bar {
-    background: linear-gradient(to right, var(--nord10), var(--nord9), var(--nord8));
-}
-
-/* Mémoire - Dégradé */
-[data-metric="memory-ram"] .progress-bar,
-[data-metric="memory-swap"] .progress-bar,
-[data-metric="memory-disk"] .progress-bar {
+/* Mémoire - Dégradé de violet à bleu-vert */
+[data-metric^="memory-"] .progress-bar {
     background: linear-gradient(to right, var(--nord15), var(--nord10), var(--nord7));
 }
 
