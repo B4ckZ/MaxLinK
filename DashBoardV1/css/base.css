@@ -14,9 +14,16 @@
     --shadow-color: rgba(0, 0, 0, 0.2);
     --highlight-color: rgba(255, 255, 255, 0.05);
     
-    /* Centre de l'écran pour positionnement - ces variables seront définies par JavaScript */
+    /* Centre de l'écran pour positionnement */
     --centre-h: 50vh; /* H = hauteur (verticale) */
     --centre-d: 50vw; /* D = droite (horizontale) */
+    
+    /* Variables pour les scrollbars */
+    --scrollbar-width: 6px;
+    --scrollbar-thumb-color: var(--nord2);
+    --scrollbar-thumb-hover-color: var(--nord8);
+    --scrollbar-margin-right: 3px;
+    --scrollbar-padding-right: 8px;
 }
 
 /* Styles globaux */
@@ -60,19 +67,20 @@ body {
         inset -4px -4px 8px var(--highlight-color);
 }
 
-/* Scrollbar Styling Minimaliste - Thème Neumorphique */
+/* Scrollbar Styling - Style unifié et optimisé */
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: var(--scrollbar-width);
+    height: var(--scrollbar-width);
 }
 
 ::-webkit-scrollbar-track {
     background: transparent;
     margin: 4px 0;
+    margin-right: var(--scrollbar-margin-right);
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: var(--nord2);
+    background-color: var(--scrollbar-thumb-color);
     border-radius: 10px;
     transition: all 0.3s ease;
     box-shadow: 
@@ -81,23 +89,36 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background-color: var(--nord8);
+    background-color: var(--scrollbar-thumb-hover-color);
 }
 
 ::-webkit-scrollbar-corner {
     background: transparent;
 }
 
-/* Pour Firefox */
+/* Support Firefox */
 * {
     scrollbar-width: thin;
-    scrollbar-color: var(--nord2) transparent;
+    scrollbar-color: var(--scrollbar-thumb-color) transparent;
 }
 
-/* Pour s'assurer que tous les conteneurs avec défilement utilisent ce style */
-.scrollable-content,
+/* Sélecteurs globaux pour tous les éléments avec scrollbars */
 [class*="container"],
-[class*="content"] {
+[class*="content"],
+.scrollable-content,
+.mqtt-topics,
+.logs-container,
+.clients-container,
+div[style*="overflow: auto"],
+div[style*="overflow-y: auto"] {
+    /* Configuration des scrollbars */
     scrollbar-width: thin;
-    scrollbar-color: var(--nord2) transparent;
+    scrollbar-color: var(--scrollbar-thumb-color) transparent;
+    
+    /* Espacement pour éviter les chevauchements */
+    scrollbar-gutter: stable;
+    padding-right: var(--scrollbar-padding-right) !important;
+    
+    /* Assurer le calcul correct des dimensions */
+    box-sizing: border-box;
 }

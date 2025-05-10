@@ -8,36 +8,44 @@ window.mqttstats = (function() {
     let latencyElement;
     let statusIndicatorElement;
     
+    // Configuration du widget
     let config = {
-        // Configuration par défaut du widget
-        updateInterval: 5000, // Intervalle de mise à jour en millisecondes
+        updateInterval: 1000,           // Intervalle de mise à jour UI en millisecondes
+        connectionTimeout: 5000,        // Délai avant de considérer le serveur comme inactif (5 sec)
+        simulationMode: true,           // Mode simulation (à désactiver quand le MQTT sera prêt)
+        mqttConfig: {
+            // Configuration pour la connexion MQTT
+            host: "mqtt://localhost",
+            port: 1883,
+            username: "",
+            password: "",
+            clientId: "dashboard-mqttstats"
+        }
     };
     
-    // Données simulées
+    // Structure de données MQTT
     let mqttData = {
-        received: 15234,
-        sent: 8712,
-        uptime: {
-            days: 5,
-            hours: 2,
-            minutes: 32
+        received: 0,                        // Nombre de messages reçus
+        sent: 0,                            // Nombre de messages envoyés
+        uptime: {                           // Uptime du serveur MQTT
+            days: 0,
+            hours: 0,
+            minutes: 0,
+            seconds: 0                      // Ajout des secondes
         },
-        latency: 23, // en ms
-        status: 'ok', // 'ok' ou 'error'
-        topics: [
-            'weri/device/+/temp',
-            'weri/device/+/humidity',
-            'weri/device/+/status',
-            'weri/system/stats',
-            'weri/system/updates',
-            'weri/device/+/battery',
-            'weri/device/+/connection',
-            'weri/network/pid/reload'
-        ]
+        latency: 0,                         // Latence en ms
+        status: 'ok',                       // Statut ('ok' ou 'error')
+        topics: [],                         // Liste des topics MQTT
+        lastActivityTimestamp: Date.now(),  // Timestamp de dernière activité
+        connected: false                    // État de connexion
     };
     
-    // Intervalle de mise à jour
-    let updateTimer;
+    // Variables pour les timers et le suivi du temps
+    let activityCheckTimer;
+    let simulationTimer;
+    let uiUpdateTimer;
+    let lastUptimeUpdate;
+    let mqttClient = null;  // Pour stocker la référence au client MQTT
     
     /**
      * Initialise le widget
@@ -59,72 +67,211 @@ window.mqttstats = (function() {
         config = {...config, ...customConfig};
         
         console.log('Widget MQTT Stats initialisé');
+        console.log(config.simulationMode ? 'Mode simulation activé' : 'Mode réel activé');
         
-        // Premier chargement des données et démarrage de la mise à jour périodique
-        loadData();
-        startUpdateInterval();
+        // Initialiser la connexion MQTT (réelle ou simulée)
+        initMQTTConnection();
+        
+        // Démarrer les vérifications périodiques d'activité
+        startActivityCheck();
+        
+        // Si en mode simulation, démarrer la simulation
+        if (config.simulationMode) {
+            startSimulation();
+        }
+        
+        // Démarrer les mises à jour de l'UI
+        startUIUpdates();
         
         // Ajuster la hauteur du conteneur de topics
         adjustTopicsContainerHeight();
     }
     
     /**
-     * Démarre la mise à jour périodique des données
+     * Initialise la connexion MQTT (réelle ou simulée)
      */
-    function startUpdateInterval() {
-        // Nettoyer l'intervalle précédent si existant
-        if (updateTimer) {
-            clearInterval(updateTimer);
+    function initMQTTConnection() {
+        if (config.simulationMode) {
+            console.log("Mode simulation actif, pas de connexion MQTT réelle");
+            // Initialiser des données de simulation
+            initSimulationData();
+            return;
         }
         
-        // Créer un nouvel intervalle
-        updateTimer = setInterval(() => {
-            loadData();
-        }, config.updateInterval);
-    }
-    
-    /**
-     * Charge ou rafraîchit les données du widget
-     */
-    function loadData() {
-        // Dans une application réelle, vous feriez un appel API ici
-        // Pour l'exemple, nous simulons des données changeantes
+        // Code pour établir la connexion MQTT avec la bibliothèque de votre choix
+        // Ce code est commenté car il nécessite une bibliothèque MQTT
+        // À décommenter et compléter quand le serveur MQTT sera disponible
         
-        // Simuler des changements de données
-        simulateDataChanges();
+        /*
+        // Exemple avec MQTT.js (à adapter selon votre bibliothèque)
+        const client = mqtt.connect(config.mqttConfig.host, {
+            port: config.mqttConfig.port,
+            username: config.mqttConfig.username,
+            password: config.mqttConfig.password,
+            clientId: config.mqttConfig.clientId
+        });
         
-        // Mettre à jour l'interface avec les nouvelles données
-        updateUI();
-    }
-    
-    /**
-     * Simule des changements de données pour la démonstration
-     */
-    function simulateDataChanges() {
-        // Augmenter le nombre de messages reçus et envoyés
-        mqttData.received += Math.floor(Math.random() * 10);
-        mqttData.sent += Math.floor(Math.random() * 5);
+        client.on('connect', () => {
+            console.log('Connecté au serveur MQTT');
+            mqttData.connected = true;
+            mqttData.lastActivityTimestamp = Date.now();
+            // S'abonner aux topics
+            client.subscribe('#');  // S'abonner à tous les topics (à affiner)
+        });
         
-        // Augmenter le temps d'uptime
-        mqttData.uptime.minutes += Math.floor(config.updateInterval / 60000);
-        if (mqttData.uptime.minutes >= 60) {
-            mqttData.uptime.hours += Math.floor(mqttData.uptime.minutes / 60);
-            mqttData.uptime.minutes = mqttData.uptime.minutes % 60;
-            
-            if (mqttData.uptime.hours >= 24) {
-                mqttData.uptime.days += Math.floor(mqttData.uptime.hours / 24);
-                mqttData.uptime.hours = mqttData.uptime.hours % 24;
+        client.on('message', (topic, message) => {
+            // Incrémenter le compteur de messages reçus
+            mqttData.received++;
+            // Mettre à jour le timestamp d'activité
+            mqttData.lastActivityTimestamp = Date.now();
+            // Ajouter le topic à la liste s'il n'y est pas déjà
+            if (!mqttData.topics.includes(topic)) {
+                mqttData.topics.push(topic);
+                // Limiter le nombre de topics affichés
+                if (mqttData.topics.length > 20) {
+                    mqttData.topics.shift(); // Enlever le plus ancien
+                }
             }
+        });
+        
+        client.on('error', (error) => {
+            mqttData.status = 'error';
+            console.error("Erreur MQTT:", error);
+        });
+        
+        // Stocker la référence client pour un usage ultérieur
+        mqttClient = client;
+        */
+    }
+    
+    /**
+     * Initialise les données de simulation
+     */
+    function initSimulationData() {
+        // Initialiser avec des valeurs de départ réalistes
+        mqttData.received = 15234;
+        mqttData.sent = 8712;
+        mqttData.uptime = {
+            days: 5,
+            hours: 2,
+            minutes: 32,
+            seconds: 15
+        };
+        mqttData.latency = 23;
+        mqttData.status = 'ok';
+        mqttData.topics = [
+            'weri/device/+/temp',
+            'weri/device/+/humidity',
+            'weri/device/+/status',
+            'weri/system/stats',
+            'weri/system/updates',
+            'weri/device/+/battery',
+            'weri/device/+/connection',
+            'weri/network/pid/reload'
+        ];
+        mqttData.lastActivityTimestamp = Date.now();
+        mqttData.connected = true;
+        
+        // Initialiser le timestamp de référence pour l'uptime
+        lastUptimeUpdate = Date.now();
+    }
+    
+    /**
+     * Démarre les vérifications périodiques d'activité
+     */
+    function startActivityCheck() {
+        // Arrêter l'ancien timer s'il existe
+        if (activityCheckTimer) {
+            clearInterval(activityCheckTimer);
         }
         
-        // Simuler un changement de latence
-        mqttData.latency = Math.floor(15 + Math.random() * 20);
+        // Démarrer un nouveau timer
+        activityCheckTimer = setInterval(() => {
+            checkMQTTActivity();
+        }, 1000); // Vérifier toutes les secondes
+    }
+    
+    /**
+     * Vérifie l'activité MQTT et met à jour le statut
+     */
+    function checkMQTTActivity() {
+        const now = Date.now();
+        const timeSinceLastActivity = now - mqttData.lastActivityTimestamp;
         
-        // Simuler un changement aléatoire de statut (1% de chance d'erreur)
-        mqttData.status = Math.random() < 0.01 ? 'error' : 'ok';
+        // Si aucune activité depuis plus longtemps que le délai configuré
+        if (timeSinceLastActivity > config.connectionTimeout) {
+            mqttData.status = 'error';
+            mqttData.connected = false;
+        } else {
+            mqttData.status = 'ok';
+            mqttData.connected = true;
+        }
+    }
+    
+    /**
+     * Démarre la simulation des données MQTT
+     */
+    function startSimulation() {
+        // Arrêter l'ancien timer s'il existe
+        if (simulationTimer) {
+            clearInterval(simulationTimer);
+        }
+        
+        // Démarrer un nouveau timer
+        simulationTimer = setInterval(() => {
+            runSimulation();
+        }, 1000); // Simuler toutes les secondes
+    }
+    
+    /**
+     * Exécute une itération de la simulation
+     */
+    function runSimulation() {
+        if (!config.simulationMode) return;
+        
+        // Simuler des messages reçus/envoyés de façon réaliste
+        mqttData.received += Math.floor(Math.random() * 3);  // 0-2 messages par seconde
+        mqttData.sent += Math.floor(Math.random() * 2);      // 0-1 messages par seconde
+        
+        // Gestion correcte de l'uptime - incrémenter en secondes
+        const now = Date.now();
+        const elapsedSeconds = Math.floor((now - lastUptimeUpdate) / 1000);
+        
+        if (elapsedSeconds > 0) {
+            // Calculer les nouvelles valeurs d'uptime
+            let totalSeconds = 
+                mqttData.uptime.days * 86400 + 
+                mqttData.uptime.hours * 3600 + 
+                mqttData.uptime.minutes * 60 + 
+                mqttData.uptime.seconds + 
+                elapsedSeconds;
+            
+            // Recalculer les jours, heures, minutes, secondes
+            mqttData.uptime.days = Math.floor(totalSeconds / 86400);
+            totalSeconds %= 86400;
+            
+            mqttData.uptime.hours = Math.floor(totalSeconds / 3600);
+            totalSeconds %= 3600;
+            
+            mqttData.uptime.minutes = Math.floor(totalSeconds / 60);
+            totalSeconds %= 60;
+            
+            mqttData.uptime.seconds = totalSeconds;
+            
+            // Mettre à jour le timestamp
+            lastUptimeUpdate = now;
+        }
+        
+        // Simuler des variations de latence
+        mqttData.latency = Math.floor(15 + Math.random() * 20); // 15-35ms
+        
+        // Mettre à jour le timestamp d'activité (sauf si on veut simuler une panne)
+        if (Math.random() > 0.005) {  // 0.5% de chance de simuler une panne
+            mqttData.lastActivityTimestamp = Date.now();
+        }
         
         // Occasionnellement ajouter ou supprimer un topic
-        if (Math.random() < 0.1) {
+        if (Math.random() < 0.05) { // 5% de chance
             const deviceTypes = ['temp', 'humidity', 'status', 'battery', 'connection', 'signal', 'power'];
             const topicPrefix = Math.random() < 0.5 ? 'weri/device/+/' : 'weri/system/';
             const topicSuffix = deviceTypes[Math.floor(Math.random() * deviceTypes.length)];
@@ -133,16 +280,34 @@ window.mqttstats = (function() {
             const newTopic = topicPrefix + topicSuffix;
             if (!mqttData.topics.includes(newTopic)) {
                 mqttData.topics.push(newTopic);
+                // Limiter le nombre de topics
+                if (mqttData.topics.length > 15) {
+                    mqttData.topics.shift(); // Enlever le plus ancien
+                }
             }
-        } else if (Math.random() < 0.05 && mqttData.topics.length > 3) {
-            // Supprimer un topic aléatoire (mais garder au moins 3 topics)
-            const indexToRemove = Math.floor(Math.random() * mqttData.topics.length);
-            mqttData.topics.splice(indexToRemove, 1);
         }
     }
     
     /**
-     * Met à jour l'interface utilisateur avec les nouvelles données
+     * Démarre les mises à jour périodiques de l'interface utilisateur
+     */
+    function startUIUpdates() {
+        // Arrêter l'ancien timer s'il existe
+        if (uiUpdateTimer) {
+            clearInterval(uiUpdateTimer);
+        }
+        
+        // Mettre à jour l'UI immédiatement
+        updateUI();
+        
+        // Démarrer un nouveau timer
+        uiUpdateTimer = setInterval(() => {
+            updateUI();
+        }, config.updateInterval);
+    }
+    
+    /**
+     * Met à jour l'interface utilisateur avec les données actuelles
      */
     function updateUI() {
         // Mettre à jour les compteurs de messages
@@ -154,9 +319,12 @@ window.mqttstats = (function() {
             messagesSentElement.textContent = mqttData.sent.toLocaleString();
         }
         
-        // Mettre à jour l'uptime
+        // Mettre à jour l'uptime avec le format "00j 00h 00s"
         if (uptimeElement) {
-            uptimeElement.textContent = `${mqttData.uptime.days}j ${mqttData.uptime.hours}h ${mqttData.uptime.minutes}m`;
+            const days = String(mqttData.uptime.days).padStart(2, '0');
+            const hours = String(mqttData.uptime.hours).padStart(2, '0');
+            const seconds = String(mqttData.uptime.seconds).padStart(2, '0');
+            uptimeElement.textContent = `${days}j ${hours}h ${seconds}s`;
         }
         
         // Mettre à jour la latence
@@ -209,35 +377,96 @@ window.mqttstats = (function() {
     }
     
     /**
-     * Nettoyage lors de la destruction du widget
-     */
-    function destroy() {
-        // Arrêter l'intervalle de mise à jour
-        if (updateTimer) {
-            clearInterval(updateTimer);
-            updateTimer = null;
-        }
-    }
-    
-    /**
      * Définit une nouvelle configuration
      * @param {Object} newConfig - Nouvelle configuration
      */
     function setConfig(newConfig) {
+        const oldConfig = {...config};
         config = {...config, ...newConfig};
         
-        // Si l'intervalle de mise à jour a changé, redémarrer l'intervalle
-        if (newConfig.updateInterval) {
-            startUpdateInterval();
+        // Si le mode simulation a changé
+        if (oldConfig.simulationMode !== config.simulationMode) {
+            // Arrêter les timers existants
+            if (simulationTimer) {
+                clearInterval(simulationTimer);
+                simulationTimer = null;
+            }
+            
+            // Réinitialiser la connexion MQTT
+            initMQTTConnection();
+            
+            // Si on passe en mode simulation, démarrer la simulation
+            if (config.simulationMode) {
+                startSimulation();
+            }
+        }
+        
+        // Si l'intervalle de mise à jour a changé, redémarrer les timers
+        if (oldConfig.updateInterval !== config.updateInterval) {
+            startUIUpdates();
+        }
+    }
+    
+    /**
+     * Simule la réception d'un message (utile pour tester)
+     */
+    function simulateMessageReceived() {
+        mqttData.received++;
+        mqttData.lastActivityTimestamp = Date.now();
+    }
+    
+    /**
+     * Simule l'envoi d'un message (utile pour tester)
+     */
+    function simulateMessageSent() {
+        mqttData.sent++;
+        mqttData.lastActivityTimestamp = Date.now();
+    }
+    
+    /**
+     * Simule une panne du serveur MQTT (utile pour tester)
+     */
+    function simulateServerDown() {
+        // Reculer le timestamp d'activité pour simuler une absence d'activité
+        mqttData.lastActivityTimestamp = Date.now() - (config.connectionTimeout + 1000);
+    }
+    
+    /**
+     * Nettoyage lors de la destruction du widget
+     */
+    function destroy() {
+        // Arrêter tous les timers
+        if (activityCheckTimer) {
+            clearInterval(activityCheckTimer);
+            activityCheckTimer = null;
+        }
+        
+        if (simulationTimer) {
+            clearInterval(simulationTimer);
+            simulationTimer = null;
+        }
+        
+        if (uiUpdateTimer) {
+            clearInterval(uiUpdateTimer);
+            uiUpdateTimer = null;
+        }
+        
+        // Fermer la connexion MQTT si elle existe
+        if (mqttClient) {
+            mqttClient.end();
+            mqttClient = null;
         }
     }
     
     // API publique du widget
     return {
         init,
-        loadData,
         setConfig,
         onResize,
-        destroy
+        destroy,
+        // Fonctions utiles pour les tests
+        simulateMessageReceived,
+        simulateMessageSent,
+        simulateServerDown
     };
 })();

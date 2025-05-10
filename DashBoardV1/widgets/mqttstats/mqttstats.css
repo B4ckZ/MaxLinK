@@ -82,8 +82,8 @@
 }
 
 .mqtt-topic {
-    padding: 6px 10px;  /* Réduit le padding vertical de 10px à 6px */
-    margin-bottom: 8px; /* Réduit l'espace entre les topics de 8px à 4px */
+    padding: 6px 10px;
+    margin-bottom: 4px;
     border-radius: calc(var(--border-radius) - 4px);
     background-color: var(--nord2);
     font-size: 14px;
