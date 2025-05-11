@@ -16,6 +16,6 @@
 
 /* Image du logo */
 .logo-image {
-    max-height: 240%;
+    max-height: 115%;
     object-fit: contain;
 }
