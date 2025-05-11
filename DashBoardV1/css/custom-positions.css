@@ -55,15 +55,23 @@
 
 #uptime {
     bottom: calc(var(--base-h) + 690px) !important;
-    left: calc(var(--base-d) + 40px) !important;
-    width: 230px !important;
+    left: calc(var(--base-d) + 125px) !important;
+    width: 255px !important;
     height: 65px !important;
     z-index: 0 !important;
 }
 
 #rebootbutton {
     bottom: calc(var(--base-h) + 690px) !important;
-    left: calc(var(--base-d) + 290px) !important;
+    left: calc(var(--base-d) + 40px) !important;
+    width: 65px !important;
+    height: 65px !important;
+    z-index: 0 !important;
+}
+
+#rebootbutton2 {
+    bottom: calc(var(--base-h) + 690px) !important;
+    left: calc(var(--base-d) + 400px) !important;
     width: 65px !important;
     height: 65px !important;
     z-index: 0 !important;
