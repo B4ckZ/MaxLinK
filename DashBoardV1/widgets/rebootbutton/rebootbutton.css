@@ -1,0 +1,40 @@
+.reboot-inset {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: calc(100% - 20px);
+    height: calc(100% - 20px);
+    
+    border-radius: calc(var(--border-radius) - 4px);
+    
+    background-color: var(--nord0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-color),
+        inset -2px -2px 4px var(--highlight-color);
+}
+
+/* Bouton de redémarrage simple */
+.reboot-button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s ease;
+}
+
+/* Effet de pression du bouton */
+.reboot-button:active {
+    transform: scale(0.85);
+}
+
+/* Style de l'icône - taille cohérente avec les autres widgets */
+.reboot-button .widget-icon {
+    width: 25px;
+    height: 25px;
+}

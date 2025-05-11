@@ -61,6 +61,14 @@
     z-index: 0 !important;
 }
 
+#rebootbutton {
+    bottom: calc(var(--base-h) + 690px) !important;
+    left: calc(var(--base-d) + 290px) !important;
+    width: 65px !important;
+    height: 65px !important;
+    z-index: 0 !important;
+}
+
 #servermonitoring {
     bottom: calc(var(--base-h) + 460px) !important;
     left: calc(var(--base-d) + 40px) !important;
