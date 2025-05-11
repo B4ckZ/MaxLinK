@@ -160,8 +160,8 @@ const WidgetRegistry = (function() {
                         
                         // Liste des noms de widgets connus (basée sur la structure de votre projet)
                         const knownWidgets = [
-                            'logo', 'mqttlogs509511', 'mqttlogs999', 'mqttstats',
-                            'rebootbutton', 'servermonitoring', 'uptime', 'wifistats', 'clock'
+                            // 'logo', 'mqttlogs509511', 'mqttlogs999', 'mqttstats',
+                            // 'rebootbutton', 'servermonitoring', 'uptime', 'wifistats', 'clock'
                         ];
                         
                         subdirectories.push(...knownWidgets);

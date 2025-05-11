@@ -69,7 +69,7 @@
     z-index: 0 !important;
 }
 
-#rebootbutton2 {
+#downloadbutton {
     bottom: calc(var(--base-h) + 690px) !important;
     left: calc(var(--base-d) + 400px) !important;
     width: 65px !important;
