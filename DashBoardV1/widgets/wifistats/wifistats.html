@@ -1,5 +1,5 @@
 <div class="widget-title">
-    <img src="assets/icons/wifi.svg" class="widget-icon">
+    <img src="assets/icons/wifi.svg" class="widget-icon" alt="WiFi">
     <span>Wi-Fi Stats & Clients</span>
 </div>
 
@@ -8,22 +8,9 @@
         <div class="network-info">S.S.I.D <span class="network-value">MaxLinkNetwork</span></div>
         <div class="network-info">Channel <span class="network-value">6 (2.4 GHz)</span></div>
     </div>
-    <div class="status-indicator status-ok"></div>
+    <div class="status-indicator status-error" id="wifi-status-indicator"></div>
 </div>
 
-<div class="clients-container">
-    <div class="client">
-        <div>ESP32-509</div>
-        <div>IP # 31.43.149.200 | 67 Mbps | 3h25m</div>
-    </div>
-    
-    <div class="client">
-        <div>ESP32-511</div>
-        <div>IP # 64.24.151.214 | 67 Mbps | 3h25m</div>
-    </div>
-    
-    <div class="client">
-        <div>Android de JJ</div>
-        <div>IP # 41.196.93.233 | 67 Mbps | 3h25m</div>
-    </div>
+<div class="clients-container" id="wifi-clients-container">
+    <!-- Les clients seront ajoutés dynamiquement -->
 </div>

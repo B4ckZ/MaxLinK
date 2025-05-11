@@ -1,6 +1,6 @@
 /**
  * Styles pour le widget wifi-stats
- * Utilisation directe des variables Nord
+ * Utilisation directe des variables Nord avec statuts de signal
  */
 
 /* Network Status */
@@ -74,13 +74,45 @@
         -4px -4px 8px var(--highlight-color);
 }
 
-.client > div:first-child {
+/* Style spécifique pour l'en-tête du client */
+.client-header {
     font-weight: 500;
     color: var(--nord8);
     margin-bottom: 4px;
 }
 
-.client > div:last-child {
+/* Style spécifique pour les détails du client */
+.client-details {
     font-size: 12px;
     color: var(--nord4);
+}
+
+/* États spéciaux des clients */
+.client-loading {
+    text-align: center;
+    color: var(--nord9);
+    font-style: italic;
+}
+
+.client-empty {
+    text-align: center;
+    color: var(--nord4);
+    font-style: italic;
+}
+
+/* Indicateurs de qualité du signal */
+.signal-excellent {
+    border-left: 3px solid var(--nord14);
+}
+
+.signal-good {
+    border-left: 3px solid var(--nord13);
+}
+
+.signal-fair {
+    border-left: 3px solid var(--nord12);
+}
+
+.signal-poor {
+    border-left: 3px solid var(--nord11);
 }
