@@ -1,13 +1,9 @@
-/**
- * Widget WiFi Stats pour MaxLink
- * Version optimisée sans simulation et avec gestion d'état
- */
 window.wifistats = (function() {
     // Variables privées du widget
     let widgetElement;
     let clientsContainer;
     let statusIndicator;
-    let lastActivityTimestamp = 0;
+    let lastActivityTimestamp = Date.now(); // Initialisé correctement
     let statusCheckTimer;
     
     // Configuration du widget
@@ -34,6 +30,9 @@ window.wifistats = (function() {
         statusIndicator = widgetElement.querySelector('.status-indicator');
         
         console.log('Widget WiFi Stats initialisé');
+        
+        // Réinitialiser le timestamp d'activité au démarrage
+        lastActivityTimestamp = Date.now();
         
         // Démarrer la vérification périodique du statut
         startStatusCheck();
@@ -125,9 +124,25 @@ window.wifistats = (function() {
         if (!timeStr) return 0;
         
         try {
-            const [hours, mins] = timeStr.split('h');
-            return (parseInt(hours) * 3600) + (parseInt(mins) * 60); 
+            // Gérer les formats comme "3h25m"
+            if (timeStr.includes('h') && timeStr.includes('m')) {
+                const [hours, mins] = timeStr.split('h');
+                return (parseInt(hours) * 3600) + (parseInt(mins) * 60);
+            } 
+            // Gérer les formats comme "3h"
+            else if (timeStr.includes('h')) {
+                const hours = parseInt(timeStr);
+                return hours * 3600;
+            } 
+            // Gérer les formats comme "25m"
+            else if (timeStr.includes('m')) {
+                const mins = parseInt(timeStr);
+                return mins * 60;
+            }
+            // Autres formats inconnus
+            return 0;
         } catch (e) {
+            console.error('Erreur lors du parsing du temps de connexion:', e);
             return 0;
         }
     }
@@ -171,6 +186,7 @@ window.wifistats = (function() {
         if (client.signal) details.push(`Signal: ${client.signal}dBm`);
         if (client.speed) details.push(`${client.speed}`);
         if (client.connectedTime) details.push(`${client.connectedTime}`);
+        if (client.mac) details.push(`MAC: ${client.mac.slice(-8)}`); // Afficher seulement les derniers caractères
         
         detailsElement.textContent = details.join(' | ');
         clientElement.appendChild(detailsElement);
@@ -181,28 +197,34 @@ window.wifistats = (function() {
     /**
      * Met à jour les clients et affiche les changements
      * @param {Array} clientsData - Données des clients WiFi
+     * @returns {boolean} Succès de l'opération
      */
     function updateClients(clientsData) {
         if (!Array.isArray(clientsData)) return false;
         
-        // Vider la Map des clients existants
-        clients.clear();
-        
-        // Ajouter les nouveaux clients
-        clientsData.forEach(client => {
-            if (client.mac || client.name) {
-                const id = client.mac || client.name; // Préférer MAC, sinon nom
-                clients.set(id, client);
-            }
-        });
-        
-        // Mettre à jour l'interface
-        renderClients();
-        
-        // Signaler l'activité
-        notifyActivity();
-        
-        return true;
+        try {
+            // Vider la Map des clients existants
+            clients.clear();
+            
+            // Ajouter les nouveaux clients
+            clientsData.forEach(client => {
+                if (client.mac || client.name) {
+                    const id = client.mac || client.name; // Préférer MAC, sinon nom
+                    clients.set(id, client);
+                }
+            });
+            
+            // Mettre à jour l'interface
+            renderClients();
+            
+            // Signaler l'activité
+            notifyActivity();
+            
+            return true;
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour des clients:', error);
+            return false;
+        }
     }
     
     /**
@@ -220,11 +242,16 @@ window.wifistats = (function() {
         if (!clientsContainer || !widgetElement) return;
         
         try {
-            const titleHeight = widgetElement.querySelector('.widget-title')?.offsetHeight || 0;
-            const statusHeight = widgetElement.querySelector('.network-status')?.offsetHeight || 0;
+            const titleElement = widgetElement.querySelector('.widget-title');
+            const statusElement = widgetElement.querySelector('.network-status');
+            
+            if (!titleElement || !statusElement) return;
+            
+            const titleHeight = titleElement.offsetHeight;
+            const statusHeight = statusElement.offsetHeight;
             const containerHeight = widgetElement.offsetHeight;
             const padding = parseInt(getComputedStyle(widgetElement).paddingTop) * 2;
-            const margins = parseInt(getComputedStyle(widgetElement.querySelector('.network-status'))?.marginBottom) || 0;
+            const margins = parseInt(getComputedStyle(statusElement).marginBottom) || 0;
             
             const availableHeight = containerHeight - titleHeight - statusHeight - padding - margins;
             
@@ -259,7 +286,7 @@ window.wifistats = (function() {
         clients.clear();
     }
     
-    // API publique du widget - simplifiée
+    // API publique du widget
     return {
         init,
         updateClients,  // API principale pour mettre à jour les clients
