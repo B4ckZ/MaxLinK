@@ -1,7 +1,7 @@
-window.rebootbutton = (function() {
+window.downloadbutton = (function() {
     // Variables privées du widget
     let widgetElement;
-    let rebootButton;
+    let downloadbutton;
     
     // Configuration MQTT
     const mqttTopic = 'weri/system/reboot';
@@ -12,13 +12,13 @@ window.rebootbutton = (function() {
      */
     function init(element) {
         widgetElement = element;
-        rebootButton = widgetElement.querySelector('#reboot-button');
+        downloadbutton = widgetElement.querySelector('#reboot-button');
         
         console.log('Widget Reboot Button initialisé');
         
         // Ajouter l'écouteur d'événement pour le clic
-        if (rebootButton) {
-            rebootButton.addEventListener('click', handleReboot);
+        if (downloadbutton) {
+            downloadbutton.addEventListener('click', handleReboot);
         }
     }
     
@@ -63,8 +63,8 @@ window.rebootbutton = (function() {
      */
     function destroy() {
         // Supprimer l'écouteur d'événement
-        if (rebootButton) {
-            rebootButton.removeEventListener('click', handleReboot);
+        if (downloadbutton) {
+            downloadbutton.removeEventListener('click', handleReboot);
         }
     }
     
