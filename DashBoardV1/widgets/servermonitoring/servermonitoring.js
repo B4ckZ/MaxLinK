@@ -1,15 +1,27 @@
 /**
  * Widget Server Monitoring pour MaxLink
- * Version améliorée avec mécanisme de mise à jour et préparation pour MQTT
+ * Version MQTT avec connexion WebSocket en temps réel
  */
 window.servermonitoring = (function() {
     // Variables privées
     let widgetElement;
-    let updateTimer;
+    let mqttClient = null;
+    let isConnected = false;
+    let reconnectTimer = null;
     
-    // Configuration des métriques
+    // Configuration MQTT
+    const MQTT_CONFIG = {
+        host: window.location.hostname, // Utilise l'IP/hostname actuel
+        port: 9001, // Port WebSocket
+        clientId: 'maxlink-dashboard-' + Math.random().toString(16).substr(2, 8),
+        username: 'maxlink',
+        password: 'mqtt',
+        reconnectPeriod: 5000,
+        keepalive: 30
+    };
+    
+    // Configuration des métriques (inchangée)
     const config = {
-        updateInterval: 2000, // Intervalle de mise à jour en ms
         metrics: {
             "cpu-core1": { key: "cpu.core1", suffix: "%", max: 100, warning: 80, critical: 90 },
             "cpu-core2": { key: "cpu.core2", suffix: "%", max: 100, warning: 80, critical: 90 },
@@ -25,147 +37,209 @@ window.servermonitoring = (function() {
         }
     };
     
-    // Données actuelles (valeurs par défaut)
-    const currentData = {
-        cpu: { core1: 0, core2: 0, core3: 0, core4: 0 },
-        temperature: { cpu: 0, gpu: 0 },
-        frequency: { cpu: 0, gpu: 0 },
-        memory: { ram: 0, swap: 0, disk: 0 }
+    // Mapping des topics MQTT vers les métriques
+    const TOPIC_MAPPING = {
+        'rpi/system/cpu/core1': 'cpu-core1',
+        'rpi/system/cpu/core2': 'cpu-core2',
+        'rpi/system/cpu/core3': 'cpu-core3',
+        'rpi/system/cpu/core4': 'cpu-core4',
+        'rpi/system/temperature/cpu': 'temp-cpu',
+        'rpi/system/temperature/gpu': 'temp-gpu',
+        'rpi/system/frequency/cpu': 'freq-cpu',
+        'rpi/system/frequency/gpu': 'freq-gpu',
+        'rpi/system/memory/ram': 'memory-ram',
+        'rpi/system/memory/swap': 'memory-swap',
+        'rpi/system/memory/disk': 'memory-disk'
     };
     
     /**
      * Initialise le widget
      * @param {HTMLElement} element - L'élément DOM du widget
-     * @param {Object} customConfig - Configuration personnalisée (optionnelle)
      */
-    function init(element, customConfig = {}) {
-        // Nettoyage préventif
-        destroy();
-        
+    function init(element) {
         widgetElement = element;
         
-        // Fusion des configurations
-        if (customConfig.metrics) {
-            Object.keys(customConfig.metrics).forEach(key => {
-                if (config.metrics[key]) {
-                    Object.assign(config.metrics[key], customConfig.metrics[key]);
-                }
+        console.log('Widget Server Monitoring avec MQTT initialisé');
+        
+        // Afficher des valeurs initiales à 0
+        updateAllMetrics(0);
+        
+        // Vérifier que la bibliothèque MQTT est chargée
+        if (typeof Paho === 'undefined' || !Paho.MQTT) {
+            console.error('Bibliothèque Paho MQTT non trouvée. Chargement...');
+            loadMQTTLibrary(() => {
+                connectMQTT();
             });
+        } else {
+            connectMQTT();
         }
-        
-        console.log('Widget Server Monitoring initialisé');
-        
-        // Afficher des valeurs initiales
-        updateUI(currentData);
-        
-        // Préparer l'intégration MQTT
-        setupMQTTListeners();
-        
-        // Démarrer les mises à jour périodiques (uniquement en mode démonstration)
-        // startPeriodicUpdates();
     }
     
     /**
-     * Configure les écouteurs MQTT pour recevoir les métriques système
+     * Charge la bibliothèque MQTT si elle n'est pas déjà présente
      */
-    function setupMQTTListeners() {
-        // À implémenter quand MQTT sera disponible
-        console.log('Préparation des écouteurs MQTT pour les métriques système');
-        
-        /* Exemple de code à implémenter:
-        if (window.mqtt) {
-            // S'abonner aux topics nécessaires
-            window.mqtt.subscribe('weri/system/cpu/+');
-            window.mqtt.subscribe('weri/system/temperature/+');
-            window.mqtt.subscribe('weri/system/frequency/+');
-            window.mqtt.subscribe('weri/system/memory/+');
-            
-            // Configurer le gestionnaire de messages
-            window.mqtt.on('message', (topic, message) => {
-                handleMQTTMessage(topic, message);
-            });
-        }
-        */
+    function loadMQTTLibrary(callback) {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js';
+        script.onload = () => {
+            console.log('Bibliothèque MQTT chargée');
+            if (callback) callback();
+        };
+        script.onerror = () => {
+            console.error('Impossible de charger la bibliothèque MQTT');
+        };
+        document.head.appendChild(script);
     }
     
     /**
-     * Traite un message MQTT reçu
-     * @param {string} topic - Topic du message
-     * @param {string} message - Contenu du message
+     * Connexion au broker MQTT
      */
-    function handleMQTTMessage(topic, message) {
+    function connectMQTT() {
         try {
-            // Analyser le message (supposé être du JSON)
-            const data = JSON.parse(message.toString());
+            // Créer le client MQTT
+            mqttClient = new Paho.MQTT.Client(
+                MQTT_CONFIG.host,
+                MQTT_CONFIG.port,
+                MQTT_CONFIG.clientId
+            );
             
-            // Extraire les informations nécessaires du topic
-            // Ex: "weri/system/cpu/core1" -> catégorie: "cpu", sous-catégorie: "core1"
-            const parts = topic.split('/');
-            if (parts.length >= 4) {
-                const category = parts[2]; // ex: "cpu"
-                const subCategory = parts[3]; // ex: "core1"
-                
-                // Mettre à jour les données actuelles
-                if (currentData[category] && data.value !== undefined) {
-                    currentData[category][subCategory] = data.value;
-                    
-                    // Mettre à jour uniquement la métrique spécifique concernée
-                    updateSpecificMetric(`${category}-${subCategory}`);
-                }
+            // Configurer les callbacks
+            mqttClient.onConnectionLost = onConnectionLost;
+            mqttClient.onMessageArrived = onMessageArrived;
+            
+            // Options de connexion
+            const connectOptions = {
+                onSuccess: onConnect,
+                onFailure: onConnectFailure,
+                userName: MQTT_CONFIG.username,
+                password: MQTT_CONFIG.password,
+                keepAliveInterval: MQTT_CONFIG.keepalive,
+                cleanSession: true,
+                useSSL: false,
+                reconnect: true
+            };
+            
+            console.log('Tentative de connexion MQTT à', MQTT_CONFIG.host + ':' + MQTT_CONFIG.port);
+            mqttClient.connect(connectOptions);
+            
+        } catch (error) {
+            console.error('Erreur lors de la création du client MQTT:', error);
+            scheduleReconnect();
+        }
+    }
+    
+    /**
+     * Callback de connexion réussie
+     */
+    function onConnect() {
+        console.log('Connecté au broker MQTT');
+        isConnected = true;
+        
+        // S'abonner à tous les topics système
+        Object.keys(TOPIC_MAPPING).forEach(topic => {
+            mqttClient.subscribe(topic);
+            console.log('Abonné au topic:', topic);
+        });
+        
+        // Afficher un indicateur de connexion (optionnel)
+        updateConnectionStatus(true);
+    }
+    
+    /**
+     * Callback d'échec de connexion
+     */
+    function onConnectFailure(error) {
+        console.error('Échec de connexion MQTT:', error.errorMessage);
+        isConnected = false;
+        updateConnectionStatus(false);
+        scheduleReconnect();
+    }
+    
+    /**
+     * Callback de perte de connexion
+     */
+    function onConnectionLost(responseObject) {
+        console.warn('Connexion MQTT perdue:', responseObject.errorMessage);
+        isConnected = false;
+        updateConnectionStatus(false);
+        
+        if (responseObject.errorCode !== 0) {
+            scheduleReconnect();
+        }
+    }
+    
+    /**
+     * Callback de réception de message
+     */
+    function onMessageArrived(message) {
+        try {
+            const topic = message.destinationName;
+            const payload = JSON.parse(message.payloadString);
+            
+            // Trouver la métrique correspondante
+            const metricId = TOPIC_MAPPING[topic];
+            if (metricId) {
+                // Mettre à jour l'UI avec la valeur reçue
+                updateMetric(metricId, payload.value);
             }
+            
         } catch (error) {
             console.error('Erreur lors du traitement du message MQTT:', error);
         }
     }
     
     /**
-     * Met à jour une métrique spécifique dans l'UI
-     * @param {string} metricId - Identifiant de la métrique à mettre à jour
+     * Programme une reconnexion
      */
-    function updateSpecificMetric(metricId) {
+    function scheduleReconnect() {
+        if (reconnectTimer) {
+            clearTimeout(reconnectTimer);
+        }
+        
+        reconnectTimer = setTimeout(() => {
+            console.log('Tentative de reconnexion MQTT...');
+            connectMQTT();
+        }, MQTT_CONFIG.reconnectPeriod);
+    }
+    
+    /**
+     * Met à jour une métrique spécifique
+     */
+    function updateMetric(metricId, value) {
         const metricConfig = config.metrics[metricId];
         if (!metricConfig) return;
         
         const element = widgetElement.querySelector(`[data-metric="${metricId}"]`);
         if (!element) return;
         
-        // Récupérer la valeur depuis les données actuelles
-        const keyParts = metricConfig.key.split('.');
-        let value = currentData;
-        
-        // Navigation dans l'objet de données
-        for (const part of keyParts) {
-            if (value && value[part] !== undefined) {
-                value = value[part];
-            } else {
-                value = undefined;
-                break;
-            }
-        }
-        
-        // Mettre à jour l'UI pour cette métrique
         updateMetricUI(element, metricConfig, value);
     }
     
     /**
      * Met à jour l'élément UI d'une métrique
-     * @param {HTMLElement} element - Élément DOM de la métrique
-     * @param {Object} metricConfig - Configuration de la métrique
-     * @param {number|undefined} value - Valeur à afficher
      */
     function updateMetricUI(element, metricConfig, value) {
-        if (value === undefined) return;
+        if (value === undefined || value === null) return;
         
         const progressBar = element.querySelector('.progress-bar');
         const progressValue = element.querySelector('.progress-value');
         
+        // Arrondir la valeur selon le type
+        let displayValue = value;
+        if (metricConfig.suffix === "%") {
+            displayValue = Math.round(value);
+        } else if (metricConfig.suffix === " GHz" || metricConfig.suffix === "°C") {
+            displayValue = value.toFixed(1);
+        } else {
+            displayValue = Math.round(value);
+        }
+        
         // Mettre à jour la barre de progression
         if (progressBar) {
-            // Calculer le pourcentage pour la largeur de la barre
             const percentage = (value / metricConfig.max) * 100;
             progressBar.style.width = `${Math.min(percentage, 100)}%`;
             
-            // Appliquer une classe en fonction du niveau (normal, warning, critical)
+            // Appliquer une classe en fonction du niveau
             progressBar.classList.remove('level-warning', 'level-critical');
             if (value >= metricConfig.critical) {
                 progressBar.classList.add('level-critical');
@@ -176,76 +250,33 @@ window.servermonitoring = (function() {
         
         // Mettre à jour le texte de la valeur
         if (progressValue) {
-            progressValue.textContent = `${value}${metricConfig.suffix}`;
+            progressValue.textContent = `${displayValue}${metricConfig.suffix}`;
         }
     }
     
     /**
-     * Met à jour l'interface utilisateur avec les données fournies
-     * @param {Object} data - Données à afficher
+     * Met à jour toutes les métriques avec une valeur
      */
-    function updateUI(data) {
-        if (!data || !widgetElement) return;
-        
-        try {
-            // Mettre à jour toutes les métriques
-            Object.keys(config.metrics).forEach(metricId => {
-                const metricConfig = config.metrics[metricId];
-                const element = widgetElement.querySelector(`[data-metric="${metricId}"]`);
-                
-                if (element) {
-                    // Récupérer la valeur depuis les données
-                    const keyParts = metricConfig.key.split('.');
-                    let value = data;
-                    
-                    // Navigation dans l'objet de données
-                    for (const part of keyParts) {
-                        if (value && value[part] !== undefined) {
-                            value = value[part];
-                        } else {
-                            value = undefined;
-                            break;
-                        }
-                    }
-                    
-                    // Mettre à jour l'UI pour cette métrique
-                    updateMetricUI(element, metricConfig, value);
-                }
-            });
-        } catch (error) {
-            console.error('Erreur lors de la mise à jour de l\'UI:', error);
-        }
-    }
-    
-    /**
-     * Appelé lorsque des données de métriques sont reçues
-     * @param {Object} data - Nouvelles données de métriques
-     */
-    function updateMetrics(data) {
-        // Fusionner les nouvelles données avec les données actuelles
-        deepMerge(currentData, data);
-        
-        // Mettre à jour l'UI
-        updateUI(currentData);
-    }
-    
-    /**
-     * Fusion profonde de deux objets
-     * @param {Object} target - Objet cible
-     * @param {Object} source - Objet source
-     */
-    function deepMerge(target, source) {
-        if (!source) return target;
-        
-        Object.keys(source).forEach(key => {
-            if (source[key] instanceof Object && key in target) {
-                deepMerge(target[key], source[key]);
-            } else {
-                target[key] = source[key];
-            }
+    function updateAllMetrics(value) {
+        Object.keys(config.metrics).forEach(metricId => {
+            updateMetric(metricId, value);
         });
-        
-        return target;
+    }
+    
+    /**
+     * Met à jour l'indicateur de statut de connexion (optionnel)
+     */
+    function updateConnectionStatus(connected) {
+        // Vous pouvez ajouter un indicateur visuel de connexion ici
+        // Par exemple, changer la couleur du titre ou ajouter un point
+        const titleElement = widgetElement.querySelector('.widget-title');
+        if (titleElement) {
+            if (connected) {
+                titleElement.style.opacity = '1';
+            } else {
+                titleElement.style.opacity = '0.6';
+            }
+        }
     }
     
     /**
@@ -259,19 +290,31 @@ window.servermonitoring = (function() {
      * Nettoyage lors de la destruction du widget
      */
     function destroy() {
-        if (updateTimer) {
-            clearInterval(updateTimer);
-            updateTimer = null;
+        // Déconnexion MQTT
+        if (mqttClient && isConnected) {
+            try {
+                mqttClient.disconnect();
+            } catch (error) {
+                console.error('Erreur lors de la déconnexion MQTT:', error);
+            }
         }
+        
+        // Nettoyer les timers
+        if (reconnectTimer) {
+            clearTimeout(reconnectTimer);
+        }
+        
+        mqttClient = null;
+        isConnected = false;
     }
     
     // API publique du widget
     return {
         init,
-        updateMetrics,
-        handleMQTTMessage,
-        updateUI,
         onResize,
-        destroy
+        destroy,
+        // Exposer certaines méthodes pour le debug
+        isConnected: () => isConnected,
+        reconnect: () => connectMQTT()
     };
 })();

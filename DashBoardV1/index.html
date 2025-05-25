@@ -1,4 +1,3 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -18,6 +17,9 @@
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/custom-positions.css">
     
+    <!-- Bibliothèque MQTT Paho pour la communication temps réel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+    
     <!-- Le gestionnaire de widgets chargera dynamiquement les CSS des widgets -->
 </head>
 
@@ -34,8 +36,14 @@
     
     <!-- Script de vérification et d'initialisation -->
     <script>
-        // Attendez que le document soit chargé et que tous les scripts soient exécutés
+        // Vérifier que MQTT est chargé
         window.addEventListener('load', function() {
+            if (typeof Paho !== 'undefined' && Paho.MQTT) {
+                console.log('Bibliothèque MQTT Paho chargée avec succès');
+            } else {
+                console.error('Bibliothèque MQTT Paho non disponible');
+            }
+            
             // Initialiser le gestionnaire de widgets avec la détection automatique
             WidgetManager.init();
             
@@ -49,8 +57,30 @@
                         }
                     });
                     return true;
+                },
+                // Nouvelle commande pour vérifier la connexion MQTT
+                checkMQTT: function() {
+                    const serverMonitoring = WidgetManager.getWidget('servermonitoring');
+                    if (serverMonitoring && typeof serverMonitoring.isConnected === 'function') {
+                        const status = serverMonitoring.isConnected() ? 'Connecté' : 'Déconnecté';
+                        console.log('État MQTT:', status);
+                        return status;
+                    }
+                    return 'Widget servermonitoring non trouvé';
+                },
+                // Nouvelle commande pour forcer la reconnexion MQTT
+                reconnectMQTT: function() {
+                    const serverMonitoring = WidgetManager.getWidget('servermonitoring');
+                    if (serverMonitoring && typeof serverMonitoring.reconnect === 'function') {
+                        serverMonitoring.reconnect();
+                        return 'Reconnexion MQTT en cours...';
+                    }
+                    return 'Widget servermonitoring non trouvé';
                 }
             };
+            
+            console.log('Dashboard MaxLink initialisé');
+            console.log('Commandes disponibles: DashboardCommands.refreshWidgets(), DashboardCommands.checkMQTT(), DashboardCommands.reconnectMQTT()');
         });
     </script>
 </body>
