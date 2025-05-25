@@ -8,6 +8,7 @@ window.servermonitoring = (function() {
     let mqttClient = null;
     let isConnected = false;
     let reconnectTimer = null;
+    let isInitialized = false; // Empêcher les initialisations multiples
     
     // Configuration MQTT
     const MQTT_CONFIG = {
@@ -57,45 +58,69 @@ window.servermonitoring = (function() {
      * @param {HTMLElement} element - L'élément DOM du widget
      */
     function init(element) {
+        // Éviter les initialisations multiples
+        if (isInitialized) {
+            console.warn('Widget Server Monitoring déjà initialisé');
+            return;
+        }
+        
         widgetElement = element;
+        isInitialized = true;
         
         console.log('Widget Server Monitoring avec MQTT initialisé');
         
         // Afficher des valeurs initiales à 0
         updateAllMetrics(0);
         
-        // Vérifier que la bibliothèque MQTT est chargée
-        if (typeof Paho === 'undefined' || !Paho.MQTT) {
-            console.error('Bibliothèque Paho MQTT non trouvée. Chargement...');
-            loadMQTTLibrary(() => {
-                connectMQTT();
-            });
-        } else {
-            connectMQTT();
-        }
+        // Charger MQTT de manière sécurisée
+        loadMQTTSafely();
     }
     
     /**
-     * Charge la bibliothèque MQTT si elle n'est pas déjà présente
+     * Charge MQTT de manière sécurisée
      */
-    function loadMQTTLibrary(callback) {
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js';
-        script.onload = () => {
-            console.log('Bibliothèque MQTT chargée');
-            if (callback) callback();
-        };
-        script.onerror = () => {
-            console.error('Impossible de charger la bibliothèque MQTT');
-        };
-        document.head.appendChild(script);
+    function loadMQTTSafely() {
+        // Attendre un peu pour s'assurer que tout est chargé
+        setTimeout(() => {
+            if (typeof Paho !== 'undefined' && Paho.MQTT && Paho.MQTT.Client) {
+                connectMQTT();
+            } else {
+                console.error('Bibliothèque Paho MQTT non disponible');
+                // Réessayer une fois après un délai
+                setTimeout(() => {
+                    if (typeof Paho !== 'undefined' && Paho.MQTT && Paho.MQTT.Client) {
+                        connectMQTT();
+                    } else {
+                        console.error('Impossible de charger MQTT après plusieurs tentatives');
+                    }
+                }, 2000);
+            }
+        }, 1000);
     }
+    
+
     
     /**
      * Connexion au broker MQTT
      */
     function connectMQTT() {
+        // Éviter les connexions multiples
+        if (mqttClient && isConnected) {
+            console.log('Déjà connecté à MQTT');
+            return;
+        }
+        
         try {
+            // Nettoyer l'ancienne connexion si elle existe
+            if (mqttClient) {
+                try {
+                    mqttClient.disconnect();
+                } catch (e) {
+                    // Ignorer les erreurs de déconnexion
+                }
+                mqttClient = null;
+            }
+            
             // Créer le client MQTT
             mqttClient = new Paho.MQTT.Client(
                 MQTT_CONFIG.host,
@@ -115,8 +140,7 @@ window.servermonitoring = (function() {
                 password: MQTT_CONFIG.password,
                 keepAliveInterval: MQTT_CONFIG.keepalive,
                 cleanSession: true,
-                useSSL: false,
-                reconnect: true
+                useSSL: false
             };
             
             console.log('Tentative de connexion MQTT à', MQTT_CONFIG.host + ':' + MQTT_CONFIG.port);
@@ -290,21 +314,26 @@ window.servermonitoring = (function() {
      * Nettoyage lors de la destruction du widget
      */
     function destroy() {
-        // Déconnexion MQTT
-        if (mqttClient && isConnected) {
-            try {
-                mqttClient.disconnect();
-            } catch (error) {
-                console.error('Erreur lors de la déconnexion MQTT:', error);
-            }
-        }
+        isInitialized = false;
         
         // Nettoyer les timers
         if (reconnectTimer) {
             clearTimeout(reconnectTimer);
+            reconnectTimer = null;
         }
         
-        mqttClient = null;
+        // Déconnexion MQTT
+        if (mqttClient) {
+            try {
+                if (isConnected) {
+                    mqttClient.disconnect();
+                }
+            } catch (error) {
+                console.error('Erreur lors de la déconnexion MQTT:', error);
+            }
+            mqttClient = null;
+        }
+        
         isConnected = false;
     }
     
