@@ -15,7 +15,7 @@ window.servermonitoring = (function() {
         host: window.location.hostname, // Utilise l'IP/hostname actuel
         port: 9001, // Port WebSocket
         clientId: 'maxlink-dashboard-' + Math.random().toString(16).substr(2, 8),
-        username: 'maxlink',
+        username: 'mosquitto',
         password: 'mqtt',
         reconnectPeriod: 5000,
         keepalive: 30
