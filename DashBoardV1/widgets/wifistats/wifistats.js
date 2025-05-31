@@ -1,6 +1,6 @@
 /**
  * Widget WiFi Stats pour MaxLink
- * Version avec connexion MQTT pour recevoir les données des clients WiFi
+ * Version améliorée avec affichage étendu : nom, IP, MAC, qualité signal et uptime
  */
 window.wifistats = (function() {
     // Variables privées
@@ -215,43 +215,75 @@ window.wifistats = (function() {
     }
     
     /**
+     * Détermine la classe CSS selon la qualité du signal
+     */
+    function getSignalClass(signalQuality) {
+        if (signalQuality >= 75) return 'signal-excellent';
+        if (signalQuality >= 50) return 'signal-good';
+        if (signalQuality >= 25) return 'signal-fair';
+        return 'signal-poor';
+    }
+    
+    /**
+     * Détermine l'icône selon la qualité du signal
+     */
+    function getSignalIcon(signalQuality) {
+        if (signalQuality >= 75) return '▂▄▆█';
+        if (signalQuality >= 50) return '▂▄▆_';
+        if (signalQuality >= 25) return '▂▄__';
+        return '▂___';
+    }
+    
+    /**
+     * Formate les octets en format lisible
+     */
+    function formatBytes(bytes) {
+        if (!bytes || bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+    
+    /**
      * Crée un élément DOM pour un client
      */
     function createClientElement(client) {
         const clientElement = document.createElement('div');
         clientElement.className = 'client';
         
-        // Classe selon la force du signal
-        if (client.signal) {
-            const signalStrength = parseInt(client.signal);
-            if (signalStrength > -50) {
-                clientElement.classList.add('signal-excellent');
-            } else if (signalStrength > -70) {
-                clientElement.classList.add('signal-good');
-            } else if (signalStrength > -80) {
-                clientElement.classList.add('signal-fair');
-            } else {
-                clientElement.classList.add('signal-poor');
-            }
-        }
+        // Ajouter la classe selon la qualité du signal
+        const signalQuality = client.signal_quality || 0;
+        clientElement.classList.add(getSignalClass(signalQuality));
         
-        // En-tête
-        const nameElement = document.createElement('div');
-        nameElement.className = 'client-header';
-        nameElement.textContent = client.name || 'Client inconnu';
-        clientElement.appendChild(nameElement);
-        
-        // Détails
-        const detailsElement = document.createElement('div');
-        detailsElement.className = 'client-details';
-        
-        const details = [];
-        if (client.ip) details.push(`IP: ${client.ip}`);
-        if (client.signal) details.push(`Signal: ${client.signal}dBm`);
-        if (client.mac) details.push(`MAC: ${client.mac.slice(-8)}`);
-        
-        detailsElement.textContent = details.join(' | ');
-        clientElement.appendChild(detailsElement);
+        // Créer la structure complète
+        clientElement.innerHTML = `
+            <div class="client-header">
+                <span class="client-name">${client.name || 'Appareil inconnu'}</span>
+                <span class="client-signal" title="Signal: ${client.signal || 'N/A'} dBm">
+                    <span class="signal-icon">${getSignalIcon(signalQuality)}</span>
+                    <span class="signal-percent">${signalQuality}%</span>
+                </span>
+            </div>
+            <div class="client-details">
+                <div class="client-info-row">
+                    <span class="info-label">IP:</span>
+                    <span class="info-value">${client.ip || 'N/A'}</span>
+                    <span class="info-label">Uptime:</span>
+                    <span class="info-value">${client.uptime || 'N/A'}</span>
+                </div>
+                <div class="client-info-row">
+                    <span class="info-label">MAC:</span>
+                    <span class="info-value mac-address">${client.mac || 'N/A'}</span>
+                </div>
+                ${client.rx_bytes || client.tx_bytes ? `
+                <div class="client-info-row traffic-info">
+                    <span class="traffic-item">↓ ${formatBytes(client.rx_bytes)}</span>
+                    <span class="traffic-item">↑ ${formatBytes(client.tx_bytes)}</span>
+                </div>
+                ` : ''}
+            </div>
+        `;
         
         return clientElement;
     }

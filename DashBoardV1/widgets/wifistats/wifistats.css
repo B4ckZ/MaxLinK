@@ -1,6 +1,6 @@
 /**
  * Styles pour le widget wifi-stats
- * Utilisation directe des variables Nord avec statuts de signal
+ * Version améliorée avec affichage étendu des métriques clients
  */
 
 /* Network Status */
@@ -59,11 +59,10 @@
 }
 
 .client {
-    padding: 10px;
+    padding: 12px;
     margin-bottom: 10px;
     border-radius: calc(var(--border-radius) - 4px);
     background-color: var(--nord2);
-    font-size: 14px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -74,17 +73,85 @@
         -4px -4px 8px var(--highlight-color);
 }
 
-/* Style spécifique pour l'en-tête du client */
+/* Header du client avec nom et signal */
 .client-header {
-    font-weight: 500;
-    color: var(--nord8);
-    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
 }
 
-/* Style spécifique pour les détails du client */
-.client-details {
+.client-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--nord8);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Indicateur de signal */
+.client-signal {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 12px;
+    color: var(--nord5);
+}
+
+.signal-icon {
+    font-family: 'Courier New', monospace;
+    letter-spacing: -2px;
+    font-size: 14px;
+}
+
+.signal-percent {
+    font-weight: 500;
+}
+
+/* Détails du client */
+.client-details {
+    font-size: 13px;
     color: var(--nord4);
+}
+
+.client-info-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+    gap: 8px;
+}
+
+.info-label {
+    font-weight: 500;
+    color: var(--nord4);
+    min-width: 40px;
+}
+
+.info-value {
+    color: var(--nord5);
+    font-family: 'Roboto Mono', monospace;
+}
+
+.mac-address {
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+/* Informations de trafic */
+.traffic-info {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--nord1);
+}
+
+.traffic-item {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 16px;
+    font-size: 12px;
+    color: var(--nord5);
 }
 
 /* États spéciaux des clients */
@@ -92,27 +159,89 @@
     text-align: center;
     color: var(--nord9);
     font-style: italic;
+    padding: 20px;
 }
 
 .client-empty {
     text-align: center;
     color: var(--nord4);
     font-style: italic;
+    padding: 20px;
 }
 
-/* Indicateurs de qualité du signal */
+/* Indicateurs de qualité du signal avec dégradés */
 .signal-excellent {
-    border-left: 3px solid var(--nord14);
+    border-left: 4px solid var(--nord14);
+    background: linear-gradient(to right, 
+        rgba(163, 190, 140, 0.05), 
+        transparent);
+}
+
+.signal-excellent .signal-icon {
+    color: var(--nord14);
 }
 
 .signal-good {
-    border-left: 3px solid var(--nord13);
+    border-left: 4px solid var(--nord13);
+    background: linear-gradient(to right, 
+        rgba(235, 203, 139, 0.05), 
+        transparent);
+}
+
+.signal-good .signal-icon {
+    color: var(--nord13);
 }
 
 .signal-fair {
-    border-left: 3px solid var(--nord12);
+    border-left: 4px solid var(--nord12);
+    background: linear-gradient(to right, 
+        rgba(208, 135, 112, 0.05), 
+        transparent);
+}
+
+.signal-fair .signal-icon {
+    color: var(--nord12);
 }
 
 .signal-poor {
-    border-left: 3px solid var(--nord11);
+    border-left: 4px solid var(--nord11);
+    background: linear-gradient(to right, 
+        rgba(191, 97, 106, 0.05), 
+        transparent);
+}
+
+.signal-poor .signal-icon {
+    color: var(--nord11);
+}
+
+/* Animation pour les nouveaux clients */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.client {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Responsive pour petits écrans */
+@media (max-width: 768px) {
+    .client-info-row {
+        flex-wrap: wrap;
+    }
+    
+    .info-label {
+        min-width: 30px;
+        font-size: 11px;
+    }
+    
+    .info-value {
+        font-size: 11px;
+    }
 }
