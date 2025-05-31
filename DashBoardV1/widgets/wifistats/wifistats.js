@@ -1,6 +1,6 @@
 /**
  * Widget WiFi Stats pour MaxLink
- * Version améliorée avec affichage étendu : nom, IP, MAC, qualité signal et uptime
+ * Version simplifiée avec mise à jour différentielle
  */
 window.wifistats = (function() {
     // Variables privées
@@ -20,8 +20,18 @@ window.wifistats = (function() {
         password: 'mqtt'
     };
     
-    // Stockage des clients WiFi
-    const clients = new Map();
+    // Map des clients pour la mise à jour différentielle
+    const clientsMap = new Map();
+    
+    // Icônes de device
+    const deviceIcons = {
+        'default': '📱',
+        'laptop': '💻',
+        'phone': '📱',
+        'tablet': '📱',
+        'raspberry': '🖥️',
+        'device': '📡'
+    };
     
     /**
      * Initialise le widget
@@ -34,10 +44,10 @@ window.wifistats = (function() {
         clientsContainer = widgetElement.querySelector('.clients-container');
         statusIndicator = widgetElement.querySelector('.status-indicator');
         
-        console.log('Widget WiFi Stats avec MQTT initialisé');
+        console.log('Widget WiFi Stats simplifié initialisé');
         
         // Afficher un message en attendant
-        showLoadingState();
+        showPlaceholder();
         
         // Ajuster la hauteur
         adjustClientsContainerHeight();
@@ -93,7 +103,6 @@ window.wifistats = (function() {
         // S'abonner aux topics
         mqttClient.subscribe('rpi/network/wifi/clients');
         mqttClient.subscribe('rpi/network/wifi/status');
-        console.log('Abonné aux topics WiFi');
         
         updateStatusIndicator();
     }
@@ -145,18 +154,156 @@ window.wifistats = (function() {
     }
     
     /**
-     * Met à jour la liste des clients
+     * Met à jour la liste des clients avec mise à jour différentielle
      */
     function updateClients(clientsList) {
-        // Vider et remplir la Map
-        clients.clear();
+        // Créer un Set des MACs actuels pour détecter les déconnexions
+        const currentMacs = new Set();
         
+        // Mettre à jour ou ajouter les clients
         clientsList.forEach(client => {
-            const id = client.mac || Math.random().toString(36);
-            clients.set(id, client);
+            const mac = client.mac;
+            currentMacs.add(mac);
+            
+            if (clientsMap.has(mac)) {
+                // Client existant - mise à jour
+                updateClientElement(mac, client);
+            } else {
+                // Nouveau client - création
+                createClientElement(mac, client);
+            }
         });
         
-        renderClients();
+        // Supprimer les clients déconnectés
+        clientsMap.forEach((element, mac) => {
+            if (!currentMacs.has(mac)) {
+                removeClientElement(mac);
+            }
+        });
+        
+        // Gérer l'affichage du placeholder
+        if (clientsMap.size === 0) {
+            showPlaceholder();
+        }
+    }
+    
+    /**
+     * Crée un nouvel élément client
+     */
+    function createClientElement(mac, client) {
+        const clientElement = document.createElement('div');
+        clientElement.className = 'wifi-client';
+        clientElement.dataset.mac = mac;
+        
+        // Structure HTML
+        clientElement.innerHTML = `
+            <div class="client-icon">${getDeviceIcon(client.name)}</div>
+            <div class="client-info">
+                <div class="client-name">${client.name || 'Unknown'}</div>
+                <div class="client-details">
+                    <span class="client-mac">${client.mac}</span>
+                    <span class="client-separator">|</span>
+                    <span class="client-uptime">${client.uptime || '0s'}</span>
+                </div>
+            </div>
+        `;
+        
+        // Ajouter avec animation
+        clientElement.style.opacity = '0';
+        clientElement.style.transform = 'translateY(10px)';
+        
+        clientsContainer.appendChild(clientElement);
+        clientsMap.set(mac, clientElement);
+        
+        // Déclencher l'animation
+        requestAnimationFrame(() => {
+            clientElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            clientElement.style.opacity = '1';
+            clientElement.style.transform = 'translateY(0)';
+        });
+    }
+    
+    /**
+     * Met à jour un élément client existant
+     */
+    function updateClientElement(mac, client) {
+        const element = clientsMap.get(mac);
+        if (!element) return;
+        
+        // Mettre à jour uniquement les éléments qui ont changé
+        const nameElement = element.querySelector('.client-name');
+        const uptimeElement = element.querySelector('.client-uptime');
+        
+        if (nameElement && nameElement.textContent !== client.name) {
+            nameElement.textContent = client.name || 'Unknown';
+        }
+        
+        if (uptimeElement && uptimeElement.textContent !== client.uptime) {
+            uptimeElement.textContent = client.uptime || '0s';
+        }
+    }
+    
+    /**
+     * Supprime un élément client
+     */
+    function removeClientElement(mac) {
+        const element = clientsMap.get(mac);
+        if (!element) return;
+        
+        // Animation de suppression
+        element.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        element.style.opacity = '0';
+        element.style.transform = 'translateX(-10px)';
+        
+        setTimeout(() => {
+            element.remove();
+            clientsMap.delete(mac);
+            
+            // Afficher placeholder si vide
+            if (clientsMap.size === 0) {
+                showPlaceholder();
+            }
+        }, 300);
+    }
+    
+    /**
+     * Détermine l'icône selon le nom du device
+     */
+    function getDeviceIcon(name) {
+        if (!name) return deviceIcons.default;
+        
+        const nameLower = name.toLowerCase();
+        
+        if (nameLower.includes('laptop') || nameLower.includes('macbook')) {
+            return deviceIcons.laptop;
+        } else if (nameLower.includes('iphone') || nameLower.includes('android') || nameLower.includes('phone')) {
+            return deviceIcons.phone;
+        } else if (nameLower.includes('ipad') || nameLower.includes('tablet')) {
+            return deviceIcons.tablet;
+        } else if (nameLower.includes('raspberry') || nameLower.includes('pi')) {
+            return deviceIcons.raspberry;
+        }
+        
+        return deviceIcons.device;
+    }
+    
+    /**
+     * Affiche un placeholder quand aucun client
+     */
+    function showPlaceholder() {
+        if (!clientsContainer) return;
+        
+        // Vérifier s'il existe déjà un placeholder
+        if (clientsContainer.querySelector('.wifi-placeholder')) return;
+        
+        // Vider le conteneur
+        clientsContainer.innerHTML = '';
+        clientsMap.clear();
+        
+        const placeholder = document.createElement('div');
+        placeholder.className = 'wifi-placeholder';
+        placeholder.textContent = 'Aucun client connecté';
+        clientsContainer.appendChild(placeholder);
     }
     
     /**
@@ -168,124 +315,6 @@ window.wifistats = (function() {
         if (ssidElement && status.ssid) {
             ssidElement.textContent = status.ssid;
         }
-        
-        // Mettre à jour le canal
-        const channelElements = widgetElement.querySelectorAll('.network-value');
-        if (channelElements[1] && status.channel) {
-            const freq = status.frequency && status.frequency > 5000 ? '5 GHz' : '2.4 GHz';
-            channelElements[1].textContent = `${status.channel} (${freq})`;
-        }
-    }
-    
-    /**
-     * Affiche un état de chargement
-     */
-    function showLoadingState() {
-        if (!clientsContainer) return;
-        
-        clientsContainer.innerHTML = '';
-        
-        const loadingElement = document.createElement('div');
-        loadingElement.className = 'client client-loading';
-        loadingElement.textContent = 'En attente de données MQTT...';
-        clientsContainer.appendChild(loadingElement);
-    }
-    
-    /**
-     * Met à jour l'affichage des clients
-     */
-    function renderClients() {
-        if (!clientsContainer) return;
-        
-        clientsContainer.innerHTML = '';
-        
-        if (clients.size === 0) {
-            const emptyElement = document.createElement('div');
-            emptyElement.className = 'client client-empty';
-            emptyElement.textContent = 'Aucun client connecté';
-            clientsContainer.appendChild(emptyElement);
-            return;
-        }
-        
-        // Afficher chaque client
-        clients.forEach(client => {
-            const clientElement = createClientElement(client);
-            clientsContainer.appendChild(clientElement);
-        });
-    }
-    
-    /**
-     * Détermine la classe CSS selon la qualité du signal
-     */
-    function getSignalClass(signalQuality) {
-        if (signalQuality >= 75) return 'signal-excellent';
-        if (signalQuality >= 50) return 'signal-good';
-        if (signalQuality >= 25) return 'signal-fair';
-        return 'signal-poor';
-    }
-    
-    /**
-     * Détermine l'icône selon la qualité du signal
-     */
-    function getSignalIcon(signalQuality) {
-        if (signalQuality >= 75) return '▂▄▆█';
-        if (signalQuality >= 50) return '▂▄▆_';
-        if (signalQuality >= 25) return '▂▄__';
-        return '▂___';
-    }
-    
-    /**
-     * Formate les octets en format lisible
-     */
-    function formatBytes(bytes) {
-        if (!bytes || bytes === 0) return '0 B';
-        const k = 1024;
-        const sizes = ['B', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-    }
-    
-    /**
-     * Crée un élément DOM pour un client
-     */
-    function createClientElement(client) {
-        const clientElement = document.createElement('div');
-        clientElement.className = 'client';
-        
-        // Ajouter la classe selon la qualité du signal
-        const signalQuality = client.signal_quality || 0;
-        clientElement.classList.add(getSignalClass(signalQuality));
-        
-        // Créer la structure complète
-        clientElement.innerHTML = `
-            <div class="client-header">
-                <span class="client-name">${client.name || 'Appareil inconnu'}</span>
-                <span class="client-signal" title="Signal: ${client.signal || 'N/A'} dBm">
-                    <span class="signal-icon">${getSignalIcon(signalQuality)}</span>
-                    <span class="signal-percent">${signalQuality}%</span>
-                </span>
-            </div>
-            <div class="client-details">
-                <div class="client-info-row">
-                    <span class="info-label">IP:</span>
-                    <span class="info-value">${client.ip || 'N/A'}</span>
-                    <span class="info-label">Uptime:</span>
-                    <span class="info-value">${client.uptime || 'N/A'}</span>
-                </div>
-                <div class="client-info-row">
-                    <span class="info-label">MAC:</span>
-                    <span class="info-value mac-address">${client.mac || 'N/A'}</span>
-                </div>
-                ${client.rx_bytes || client.tx_bytes ? `
-                <div class="client-info-row traffic-info">
-                    <span class="traffic-item">↓ ${formatBytes(client.rx_bytes)}</span>
-                    <span class="traffic-item">↑ ${formatBytes(client.tx_bytes)}</span>
-                </div>
-                ` : ''}
-            </div>
-        `;
-        
-        return clientElement;
     }
     
     /**
@@ -349,7 +378,7 @@ window.wifistats = (function() {
             clientsContainer.innerHTML = '';
         }
         
-        clients.clear();
+        clientsMap.clear();
     }
     
     // API publique
