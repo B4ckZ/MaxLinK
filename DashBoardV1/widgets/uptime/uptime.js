@@ -1,126 +1,145 @@
 /**
  * Widget Uptime pour MaxLink
- * Version améliorée avec préparation pour MQTT
+ * Version avec abonnement MQTT au topic rpi/system/uptime
  */
 window.uptime = (function() {
     // Variables privées
     let widgetElement;
     let uptimeElement;
-    let updateTimer;
+    let mqttClient = null;
+    let isConnected = false;
     
-    // Configuration
-    const config = {
-        refreshInterval: 1000, // Mise à jour toutes les secondes
-        mqttTopic: 'weri/system/uptime' // Topic MQTT pour l'uptime du système
+    // Configuration MQTT (réutilise la même config)
+    const MQTT_CONFIG = {
+        host: window.location.hostname,
+        port: 9001,
+        clientId: 'maxlink-uptime-' + Math.random().toString(16).substr(2, 8),
+        username: 'mosquitto',
+        password: 'mqtt'
     };
     
-    // Variable pour le temps total en secondes
-    let totalSeconds = 0;
+    // Valeur actuelle de l'uptime en secondes
+    let currentUptime = 0;
+    let lastUpdate = 0;
     
     /**
      * Initialise le widget
      * @param {HTMLElement} element - L'élément DOM du widget
-     * @param {Object} customConfig - Configuration personnalisée (optionnelle)
      */
-    function init(element, customConfig = {}) {
-        // Nettoyage préventif
-        destroy();
-        
+    function init(element) {
         widgetElement = element;
         uptimeElement = widgetElement.querySelector('[data-metric="uptime"]');
         
-        // Fusion des configurations
-        Object.assign(config, customConfig);
-        
-        console.log('Widget Uptime initialisé');
+        console.log('Widget Uptime avec MQTT initialisé');
         
         // Ajouter la classe pour la stabilité numérique
         if (uptimeElement) {
             uptimeElement.classList.add('uptime-value-stable');
         }
         
-        // Initialiser avec une valeur de départ
-        totalSeconds = 0;
+        // Afficher une valeur initiale
         updateUptimeDisplay();
         
-        // Préparer l'intégration MQTT
-        setupMQTTListener();
-        
-        // Démarrer l'intervalle de mise à jour locale
-        startUpdateInterval();
+        // Connexion MQTT
+        connectMQTT();
     }
     
     /**
-     * Configure l'écouteur MQTT pour recevoir l'uptime du système
+     * Connexion au broker MQTT
      */
-    function setupMQTTListener() {
-        // À implémenter quand MQTT sera disponible
-        console.log(`Préparation de l'écouteur MQTT sur le topic: ${config.mqttTopic}`);
-        
-        /* Exemple de code à implémenter:
-        if (window.mqtt) {
-            window.mqtt.subscribe(config.mqttTopic);
-            
-            window.mqtt.on('message', (topic, message) => {
-                if (topic === config.mqttTopic) {
-                    handleUptimeMessage(message);
-                }
-            });
-        }
-        */
-    }
-    
-    /**
-     * Traite un message MQTT d'uptime reçu
-     * @param {Buffer|string} message - Message MQTT contenant l'uptime
-     */
-    function handleUptimeMessage(message) {
+    function connectMQTT() {
         try {
-            const uptimeData = JSON.parse(message.toString());
+            if (typeof Paho === 'undefined' || !Paho.MQTT) {
+                console.error('Bibliothèque Paho MQTT non disponible');
+                setTimeout(connectMQTT, 5000);
+                return;
+            }
             
-            // Le message peut contenir soit un nombre total de secondes
-            if (typeof uptimeData.seconds === 'number') {
-                totalSeconds = uptimeData.seconds;
-                updateUptimeDisplay();
-            } 
-            // Soit un objet avec les composants (jours, heures, minutes, secondes)
-            else if (uptimeData.days !== undefined) {
-                totalSeconds = 
-                    (uptimeData.days || 0) * 86400 + 
-                    (uptimeData.hours || 0) * 3600 + 
-                    (uptimeData.minutes || 0) * 60 + 
-                    (uptimeData.seconds || 0);
+            mqttClient = new Paho.MQTT.Client(
+                MQTT_CONFIG.host,
+                MQTT_CONFIG.port,
+                MQTT_CONFIG.clientId
+            );
+            
+            mqttClient.onConnectionLost = onConnectionLost;
+            mqttClient.onMessageArrived = onMessageArrived;
+            
+            const connectOptions = {
+                onSuccess: onConnect,
+                onFailure: onConnectFailure,
+                userName: MQTT_CONFIG.username,
+                password: MQTT_CONFIG.password,
+                keepAliveInterval: 30,
+                cleanSession: true
+            };
+            
+            mqttClient.connect(connectOptions);
+            
+        } catch (error) {
+            console.error('Erreur création client MQTT:', error);
+            setTimeout(connectMQTT, 5000);
+        }
+    }
+    
+    /**
+     * Callback de connexion réussie
+     */
+    function onConnect() {
+        console.log('Widget Uptime connecté au broker MQTT');
+        isConnected = true;
+        
+        // S'abonner au topic uptime
+        mqttClient.subscribe('rpi/system/uptime');
+        console.log('Abonné au topic: rpi/system/uptime');
+    }
+    
+    /**
+     * Callback d'échec de connexion
+     */
+    function onConnectFailure(error) {
+        console.error('Échec connexion MQTT:', error.errorMessage);
+        isConnected = false;
+        setTimeout(connectMQTT, 5000);
+    }
+    
+    /**
+     * Callback de perte de connexion
+     */
+    function onConnectionLost(responseObject) {
+        console.warn('Connexion MQTT perdue:', responseObject.errorMessage);
+        isConnected = false;
+        
+        if (responseObject.errorCode !== 0) {
+            setTimeout(connectMQTT, 5000);
+        }
+    }
+    
+    /**
+     * Callback de réception de message
+     */
+    function onMessageArrived(message) {
+        try {
+            const payload = JSON.parse(message.payloadString);
+            
+            if (message.destinationName === 'rpi/system/uptime' && payload.value) {
+                currentUptime = payload.value;
+                lastUpdate = Date.now();
                 updateUptimeDisplay();
             }
+            
         } catch (error) {
-            console.error('Erreur lors du traitement du message d\'uptime:', error);
+            console.error('Erreur traitement message:', error);
         }
-    }
-    
-    /**
-     * Démarre la mise à jour périodique de l'uptime
-     */
-    function startUpdateInterval() {
-        if (updateTimer) {
-            clearInterval(updateTimer);
-            updateTimer = null;
-        }
-        
-        updateTimer = setInterval(() => {
-            totalSeconds++;
-            updateUptimeDisplay();
-        }, config.refreshInterval);
     }
     
     /**
      * Formate l'uptime pour l'affichage
-     * @returns {string} Chaîne formatée pour l'affichage
      */
     function formatUptime() {
-        const days = Math.floor(totalSeconds / 86400);
-        const hours = Math.floor((totalSeconds % 86400) / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
+        const days = Math.floor(currentUptime / 86400);
+        const hours = Math.floor((currentUptime % 86400) / 3600);
+        const minutes = Math.floor((currentUptime % 3600) / 60);
+        const seconds = currentUptime % 60;
         
         return `${String(days).padStart(2, '0')}j ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
     }
@@ -135,38 +154,28 @@ window.uptime = (function() {
     }
     
     /**
-     * Met à jour directement la valeur d'uptime
-     * @param {number} seconds - Nombre total de secondes d'uptime
-     */
-    function setUptime(seconds) {
-        if (typeof seconds === 'number' && seconds >= 0) {
-            totalSeconds = seconds;
-            updateUptimeDisplay();
-        }
-    }
-    
-    /**
-     * Appelé lors du redimensionnement de la fenêtre
+     * Appelé lors du redimensionnement
      */
     function onResize() {
         // Pas d'ajustement nécessaire
     }
     
     /**
-     * Nettoyage lors de la destruction du widget
+     * Nettoyage
      */
     function destroy() {
-        if (updateTimer) {
-            clearInterval(updateTimer);
-            updateTimer = null;
+        if (mqttClient && isConnected) {
+            try {
+                mqttClient.disconnect();
+            } catch (error) {
+                console.error('Erreur déconnexion:', error);
+            }
         }
     }
     
-    // API publique du widget
+    // API publique
     return {
         init,
-        setUptime,
-        handleUptimeMessage,
         onResize,
         destroy
     };

@@ -1,18 +1,26 @@
+/**
+ * Widget WiFi Stats pour MaxLink
+ * Version avec connexion MQTT pour recevoir les données des clients WiFi
+ */
 window.wifistats = (function() {
-    // Variables privées du widget
+    // Variables privées
     let widgetElement;
     let clientsContainer;
     let statusIndicator;
-    let lastActivityTimestamp = Date.now(); // Initialisé correctement
-    let statusCheckTimer;
+    let mqttClient = null;
+    let isConnected = false;
+    let lastUpdate = Date.now();
     
-    // Configuration du widget
-    const config = {
-        statusCheckInterval: 1000,       // Intervalle de vérification du statut en ms
-        statusTimeoutThreshold: 5000     // Délai avant de considérer inactif en ms
+    // Configuration MQTT
+    const MQTT_CONFIG = {
+        host: window.location.hostname,
+        port: 9001,
+        clientId: 'maxlink-wifistats-' + Math.random().toString(16).substr(2, 8),
+        username: 'mosquitto',
+        password: 'mqtt'
     };
     
-    // Stockage des clients WiFi (utilise Map pour efficacité)
+    // Stockage des clients WiFi
     const clients = new Map();
     
     /**
@@ -20,32 +28,157 @@ window.wifistats = (function() {
      * @param {HTMLElement} element - L'élément DOM du widget
      */
     function init(element) {
-        // Nettoyage préventif
-        destroy();
-        
         widgetElement = element;
         
-        // Récupérer les références aux éléments DOM (une seule fois)
+        // Récupérer les références aux éléments DOM
         clientsContainer = widgetElement.querySelector('.clients-container');
         statusIndicator = widgetElement.querySelector('.status-indicator');
         
-        console.log('Widget WiFi Stats initialisé');
+        console.log('Widget WiFi Stats avec MQTT initialisé');
         
-        // Réinitialiser le timestamp d'activité au démarrage
-        lastActivityTimestamp = Date.now();
+        // Afficher un message en attendant
+        showLoadingState();
         
-        // Démarrer la vérification périodique du statut
-        startStatusCheck();
-        
-        // Ajuster la hauteur du conteneur de clients
+        // Ajuster la hauteur
         adjustClientsContainerHeight();
         
-        // Afficher un message en attendant les données
-        showLoadingState();
+        // Connexion MQTT
+        connectMQTT();
     }
     
     /**
-     * Affiche un état de chargement initial
+     * Connexion au broker MQTT
+     */
+    function connectMQTT() {
+        try {
+            if (typeof Paho === 'undefined' || !Paho.MQTT) {
+                console.error('Bibliothèque Paho MQTT non disponible');
+                setTimeout(connectMQTT, 5000);
+                return;
+            }
+            
+            mqttClient = new Paho.MQTT.Client(
+                MQTT_CONFIG.host,
+                MQTT_CONFIG.port,
+                MQTT_CONFIG.clientId
+            );
+            
+            mqttClient.onConnectionLost = onConnectionLost;
+            mqttClient.onMessageArrived = onMessageArrived;
+            
+            const connectOptions = {
+                onSuccess: onConnect,
+                onFailure: onConnectFailure,
+                userName: MQTT_CONFIG.username,
+                password: MQTT_CONFIG.password,
+                keepAliveInterval: 30,
+                cleanSession: true
+            };
+            
+            mqttClient.connect(connectOptions);
+            
+        } catch (error) {
+            console.error('Erreur création client MQTT:', error);
+            setTimeout(connectMQTT, 5000);
+        }
+    }
+    
+    /**
+     * Callback de connexion réussie
+     */
+    function onConnect() {
+        console.log('Widget WiFi Stats connecté au broker MQTT');
+        isConnected = true;
+        
+        // S'abonner aux topics
+        mqttClient.subscribe('rpi/network/wifi/clients');
+        mqttClient.subscribe('rpi/network/wifi/status');
+        console.log('Abonné aux topics WiFi');
+        
+        updateStatusIndicator();
+    }
+    
+    /**
+     * Callback d'échec de connexion
+     */
+    function onConnectFailure(error) {
+        console.error('Échec connexion MQTT:', error.errorMessage);
+        isConnected = false;
+        updateStatusIndicator();
+        setTimeout(connectMQTT, 5000);
+    }
+    
+    /**
+     * Callback de perte de connexion
+     */
+    function onConnectionLost(responseObject) {
+        console.warn('Connexion MQTT perdue:', responseObject.errorMessage);
+        isConnected = false;
+        updateStatusIndicator();
+        
+        if (responseObject.errorCode !== 0) {
+            setTimeout(connectMQTT, 5000);
+        }
+    }
+    
+    /**
+     * Callback de réception de message
+     */
+    function onMessageArrived(message) {
+        try {
+            const topic = message.destinationName;
+            const payload = JSON.parse(message.payloadString);
+            
+            lastUpdate = Date.now();
+            
+            if (topic === 'rpi/network/wifi/clients') {
+                updateClients(payload.clients || []);
+            } else if (topic === 'rpi/network/wifi/status') {
+                updateStatus(payload);
+            }
+            
+            updateStatusIndicator();
+            
+        } catch (error) {
+            console.error('Erreur traitement message:', error);
+        }
+    }
+    
+    /**
+     * Met à jour la liste des clients
+     */
+    function updateClients(clientsList) {
+        // Vider et remplir la Map
+        clients.clear();
+        
+        clientsList.forEach(client => {
+            const id = client.mac || Math.random().toString(36);
+            clients.set(id, client);
+        });
+        
+        renderClients();
+    }
+    
+    /**
+     * Met à jour le statut WiFi
+     */
+    function updateStatus(status) {
+        // Mettre à jour le SSID si disponible
+        const ssidElement = widgetElement.querySelector('.network-value');
+        if (ssidElement && status.ssid) {
+            ssidElement.textContent = status.ssid;
+        }
+        
+        // Mettre à jour le canal
+        const channelElements = widgetElement.querySelectorAll('.network-value');
+        if (channelElements[1] && status.channel) {
+            const freq = status.frequency && status.frequency > 5000 ? '5 GHz' : '2.4 GHz';
+            channelElements[1].textContent = `${status.channel} (${freq})`;
+        }
+    }
+    
+    /**
+     * Affiche un état de chargement
      */
     function showLoadingState() {
         if (!clientsContainer) return;
@@ -54,46 +187,18 @@ window.wifistats = (function() {
         
         const loadingElement = document.createElement('div');
         loadingElement.className = 'client client-loading';
-        loadingElement.textContent = 'En attente de données...';
+        loadingElement.textContent = 'En attente de données MQTT...';
         clientsContainer.appendChild(loadingElement);
     }
     
     /**
-     * Démarre la vérification périodique du statut
-     */
-    function startStatusCheck() {
-        if (statusCheckTimer) {
-            clearInterval(statusCheckTimer);
-        }
-        
-        statusCheckTimer = setInterval(() => {
-            updateStatusIndicator();
-        }, config.statusCheckInterval);
-    }
-    
-    /**
-     * Met à jour l'indicateur de statut basé sur la dernière activité
-     */
-    function updateStatusIndicator() {
-        if (!statusIndicator) return;
-        
-        const now = Date.now();
-        const timeSinceLastActivity = now - lastActivityTimestamp;
-        const isActive = timeSinceLastActivity < config.statusTimeoutThreshold;
-        
-        statusIndicator.className = `status-indicator status-${isActive ? 'ok' : 'error'}`;
-    }
-    
-    /**
-     * Met à jour la liste des clients dans l'interface
+     * Met à jour l'affichage des clients
      */
     function renderClients() {
         if (!clientsContainer) return;
         
-        // Vider le conteneur
         clientsContainer.innerHTML = '';
         
-        // Afficher un message si aucun client
         if (clients.size === 0) {
             const emptyElement = document.createElement('div');
             emptyElement.className = 'client client-empty';
@@ -102,61 +207,21 @@ window.wifistats = (function() {
             return;
         }
         
-        // Convertir Map en Array et trier (plus récent en haut)
-        const clientsArray = Array.from(clients.values()).sort((a, b) => {
-            // Tri par temps de connexion (du plus récent au plus ancien)
-            return parseConnTime(b.connectedTime) - parseConnTime(a.connectedTime);
-        });
-        
         // Afficher chaque client
-        clientsArray.forEach(client => {
+        clients.forEach(client => {
             const clientElement = createClientElement(client);
             clientsContainer.appendChild(clientElement);
         });
     }
     
     /**
-     * Parse le temps de connexion format "XhYm" en secondes
-     * @param {string} timeStr - Temps au format XhYm
-     * @returns {number} Temps en secondes
-     */
-    function parseConnTime(timeStr) {
-        if (!timeStr) return 0;
-        
-        try {
-            // Gérer les formats comme "3h25m"
-            if (timeStr.includes('h') && timeStr.includes('m')) {
-                const [hours, mins] = timeStr.split('h');
-                return (parseInt(hours) * 3600) + (parseInt(mins) * 60);
-            } 
-            // Gérer les formats comme "3h"
-            else if (timeStr.includes('h')) {
-                const hours = parseInt(timeStr);
-                return hours * 3600;
-            } 
-            // Gérer les formats comme "25m"
-            else if (timeStr.includes('m')) {
-                const mins = parseInt(timeStr);
-                return mins * 60;
-            }
-            // Autres formats inconnus
-            return 0;
-        } catch (e) {
-            console.error('Erreur lors du parsing du temps de connexion:', e);
-            return 0;
-        }
-    }
-    
-    /**
-     * Crée un élément DOM pour un client WiFi
-     * @param {Object} client - Données du client
-     * @returns {HTMLElement} Élément DOM du client
+     * Crée un élément DOM pour un client
      */
     function createClientElement(client) {
         const clientElement = document.createElement('div');
         clientElement.className = 'client';
         
-        // Déterminer la classe CSS basée sur la force du signal (si disponible)
+        // Classe selon la force du signal
         if (client.signal) {
             const signalStrength = parseInt(client.signal);
             if (signalStrength > -50) {
@@ -170,23 +235,20 @@ window.wifistats = (function() {
             }
         }
         
-        // En-tête du client
+        // En-tête
         const nameElement = document.createElement('div');
         nameElement.className = 'client-header';
         nameElement.textContent = client.name || 'Client inconnu';
         clientElement.appendChild(nameElement);
         
-        // Détails du client
+        // Détails
         const detailsElement = document.createElement('div');
         detailsElement.className = 'client-details';
         
-        // Construire les détails avec les données disponibles
         const details = [];
         if (client.ip) details.push(`IP: ${client.ip}`);
         if (client.signal) details.push(`Signal: ${client.signal}dBm`);
-        if (client.speed) details.push(`${client.speed}`);
-        if (client.connectedTime) details.push(`${client.connectedTime}`);
-        if (client.mac) details.push(`MAC: ${client.mac.slice(-8)}`); // Afficher seulement les derniers caractères
+        if (client.mac) details.push(`MAC: ${client.mac.slice(-8)}`);
         
         detailsElement.textContent = details.join(' | ');
         clientElement.appendChild(detailsElement);
@@ -195,48 +257,19 @@ window.wifistats = (function() {
     }
     
     /**
-     * Met à jour les clients et affiche les changements
-     * @param {Array} clientsData - Données des clients WiFi
-     * @returns {boolean} Succès de l'opération
+     * Met à jour l'indicateur de statut
      */
-    function updateClients(clientsData) {
-        if (!Array.isArray(clientsData)) return false;
+    function updateStatusIndicator() {
+        if (!statusIndicator) return;
         
-        try {
-            // Vider la Map des clients existants
-            clients.clear();
-            
-            // Ajouter les nouveaux clients
-            clientsData.forEach(client => {
-                if (client.mac || client.name) {
-                    const id = client.mac || client.name; // Préférer MAC, sinon nom
-                    clients.set(id, client);
-                }
-            });
-            
-            // Mettre à jour l'interface
-            renderClients();
-            
-            // Signaler l'activité
-            notifyActivity();
-            
-            return true;
-        } catch (error) {
-            console.error('Erreur lors de la mise à jour des clients:', error);
-            return false;
-        }
+        const timeSinceUpdate = Date.now() - lastUpdate;
+        const isActive = isConnected && timeSinceUpdate < 60000; // 1 minute
+        
+        statusIndicator.className = `status-indicator status-${isActive ? 'ok' : 'error'}`;
     }
     
     /**
-     * Notifie le widget d'une activité MQTT
-     */
-    function notifyActivity() {
-        lastActivityTimestamp = Date.now();
-        updateStatusIndicator();
-    }
-    
-    /**
-     * Ajuste la hauteur du conteneur des clients
+     * Ajuste la hauteur du conteneur
      */
     function adjustClientsContainerHeight() {
         if (!clientsContainer || !widgetElement) return;
@@ -255,42 +288,41 @@ window.wifistats = (function() {
             
             const availableHeight = containerHeight - titleHeight - statusHeight - padding - margins;
             
-            // Utiliser max pour éviter les hauteurs négatives
             clientsContainer.style.height = `${Math.max(0, availableHeight)}px`;
         } catch (error) {
-            console.error('Erreur lors de l\'ajustement de la hauteur:', error);
+            console.error('Erreur ajustement hauteur:', error);
         }
     }
     
     /**
-     * Appelé lors du redimensionnement de la fenêtre
+     * Appelé lors du redimensionnement
      */
     function onResize() {
         adjustClientsContainerHeight();
     }
     
     /**
-     * Nettoyage lors de la destruction du widget
+     * Nettoyage
      */
     function destroy() {
-        if (statusCheckTimer) {
-            clearInterval(statusCheckTimer);
-            statusCheckTimer = null;
+        if (mqttClient && isConnected) {
+            try {
+                mqttClient.disconnect();
+            } catch (error) {
+                console.error('Erreur déconnexion:', error);
+            }
         }
         
         if (clientsContainer) {
             clientsContainer.innerHTML = '';
         }
         
-        // Vider la Map des clients
         clients.clear();
     }
     
-    // API publique du widget
+    // API publique
     return {
         init,
-        updateClients,  // API principale pour mettre à jour les clients
-        notifyActivity, // Pour signaler activité sans données
         onResize,
         destroy
     };

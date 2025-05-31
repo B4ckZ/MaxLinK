@@ -1,6 +1,6 @@
 /**
  * Widget Server Monitoring pour MaxLink
- * Version MQTT avec connexion WebSocket en temps réel
+ * Version avec connexion MQTT WebSocket en temps réel
  */
 window.servermonitoring = (function() {
     // Variables privées
@@ -8,7 +8,6 @@ window.servermonitoring = (function() {
     let mqttClient = null;
     let isConnected = false;
     let reconnectTimer = null;
-    let isInitialized = false; // Empêcher les initialisations multiples
     
     // Configuration MQTT
     const MQTT_CONFIG = {
@@ -21,7 +20,7 @@ window.servermonitoring = (function() {
         keepalive: 30
     };
     
-    // Configuration des métriques (inchangée)
+    // Configuration des métriques
     const config = {
         metrics: {
             "cpu-core1": { key: "cpu.core1", suffix: "%", max: 100, warning: 80, critical: 90 },
@@ -58,67 +57,27 @@ window.servermonitoring = (function() {
      * @param {HTMLElement} element - L'élément DOM du widget
      */
     function init(element) {
-        // Éviter les initialisations multiples
-        if (isInitialized) {
-            console.warn('Widget Server Monitoring déjà initialisé');
-            return;
-        }
-        
         widgetElement = element;
-        isInitialized = true;
         
         console.log('Widget Server Monitoring avec MQTT initialisé');
         
         // Afficher des valeurs initiales à 0
         updateAllMetrics(0);
         
-        // Charger MQTT de manière sécurisée
-        loadMQTTSafely();
+        // Connexion MQTT
+        connectMQTT();
     }
-    
-    /**
-     * Charge MQTT de manière sécurisée
-     */
-    function loadMQTTSafely() {
-        // Attendre un peu pour s'assurer que tout est chargé
-        setTimeout(() => {
-            if (typeof Paho !== 'undefined' && Paho.MQTT && Paho.MQTT.Client) {
-                connectMQTT();
-            } else {
-                console.error('Bibliothèque Paho MQTT non disponible');
-                // Réessayer une fois après un délai
-                setTimeout(() => {
-                    if (typeof Paho !== 'undefined' && Paho.MQTT && Paho.MQTT.Client) {
-                        connectMQTT();
-                    } else {
-                        console.error('Impossible de charger MQTT après plusieurs tentatives');
-                    }
-                }, 2000);
-            }
-        }, 1000);
-    }
-    
-
     
     /**
      * Connexion au broker MQTT
      */
     function connectMQTT() {
-        // Éviter les connexions multiples
-        if (mqttClient && isConnected) {
-            console.log('Déjà connecté à MQTT');
-            return;
-        }
-        
         try {
-            // Nettoyer l'ancienne connexion si elle existe
-            if (mqttClient) {
-                try {
-                    mqttClient.disconnect();
-                } catch (e) {
-                    // Ignorer les erreurs de déconnexion
-                }
-                mqttClient = null;
+            // Vérifier que Paho est disponible
+            if (typeof Paho === 'undefined' || !Paho.MQTT) {
+                console.error('Bibliothèque Paho MQTT non disponible');
+                scheduleReconnect();
+                return;
             }
             
             // Créer le client MQTT
@@ -314,8 +273,6 @@ window.servermonitoring = (function() {
      * Nettoyage lors de la destruction du widget
      */
     function destroy() {
-        isInitialized = false;
-        
         // Nettoyer les timers
         if (reconnectTimer) {
             clearTimeout(reconnectTimer);
